@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:testely.helloWorld"
+        "*"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -18,8 +18,27 @@
 			{
 				"command": "testely.helloWorld",
 				"title": "Hello World"
+			},
+			{
+				"command": "testely.createTest",
+				"title": "Create Test",
+				"category": "Testely"
 			}
-		]
+		],
+		"menus":{
+			"commandPalette":[
+				{
+					"command":"testely.createTest",
+					"when":"editorLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g"
+				}
+			],
+			"explorer/context":[
+				{
+					"command":"testely.createTest",
+					"when":"true"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run package",

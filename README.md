@@ -1,12 +1,22 @@
-# testely README
+# Testely README
 
-This is the README for your extension "testely". After writing up a brief description, we recommend including the following sections.
+This extension wants to increase the productivity while writing tests for your project. Unit tests are often small and most of the time is wasted with boilerplate code like `import { render } from '@testing/library-react'` and all these little things.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Currently working on the support for:
+- typescript
+- typescriptreact
 
-For example if there is an image subfolder under your extension project workspace:
+This extension will probably only work for this context at the moment.
+
+### Create Test
+
+The extension will allow you to create a test from a `.ts` or `.tsx` file.
+
+WIP TODO and NOT DONE YET
+
+---------------
 
 \!\[feature X\]\(images/feature-x.png\)
 
@@ -68,3 +78,7 @@ Ensure that you've read through the extensions guidelines and follow the best pr
 * [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 **Enjoy!**
+
+### Commans Categories
+
+https://code.visualstudio.com/api/references/when-clause-contexts
