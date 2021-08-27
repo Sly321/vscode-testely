@@ -1,70 +1,79 @@
 {
   "name": "testely",
-	"displayName": "testely",
-	"description": "Testely wants to help you in your test writing process.",
-	"version": "0.0.1",
-	"engines": {
-		"vscode": "^1.59.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-        "*"
-	],
-	"main": "./dist/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "testely.helloWorld",
-				"title": "Hello World"
-			},
-			{
-				"command": "testely.createTest",
-				"title": "Create Test",
-				"category": "Testely"
-			}
-		],
-		"menus":{
-			"commandPalette":[
-				{
-					"command":"testely.createTest",
-					"when":"editorLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g"
-				}
-			],
-			"explorer/context":[
-				{
-					"command":"testely.createTest",
-					"when":"true"
-				}
-			]
-		}
-	},
-	"scripts": {
-		"vscode:prepublish": "yarn run package",
-		"compile": "webpack",
-		"watch": "webpack --watch",
-		"package": "webpack --mode production --devtool hidden-source-map",
-		"test-compile": "tsc -p ./",
-		"test-watch": "tsc -watch -p ./",
-		"pretest": "yarn run test-compile && yarn run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.59.0",
-		"@types/glob": "^7.1.3",
-		"@types/mocha": "^8.2.2",
-		"@types/node": "14.x",
-		"eslint": "^7.27.0",
-		"@typescript-eslint/eslint-plugin": "^4.26.0",
-		"@typescript-eslint/parser": "^4.26.0",
-		"glob": "^7.1.7",
-		"mocha": "^8.4.0",
-		"typescript": "^4.3.2",
-		"vscode-test": "^1.5.2",
-		"ts-loader": "^9.2.2",
-		"webpack": "^5.38.1",
-		"webpack-cli": "^4.7.0"
-	}
+  "displayName": "testely",
+  "description": "Testely wants to help you in your test writing process.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.59.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "testely.createTest",
+        "title": "Create Test",
+        "category": "Testely",
+        "icon": "$(test-view-icon)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "testely.createTest",
+          "group": "DD",
+          "when": "editorLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "testely.createTest",
+          "when": "resourceLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g",
+          "group": "Testely"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "testely.createTest",
+          "when": "resourceLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "yarn run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "test-compile": "tsc -p ./",
+    "test-watch": "tsc -watch -p ./",
+    "pretest": "yarn run test-compile && yarn run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "test:helpers": "node ./out/test/helpers/index.js",
+    "test:helpers:watch": "nodemon --watch ./out/helpers --watch ./out/test/helpers ./out/test/helpers/index.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "14.x",
+    "@types/vscode": "^1.59.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
+    "eslint": "^7.27.0",
+    "glob": "^7.1.7",
+    "mocha": "^8.4.0",
+    "nodemon": "^2.0.12",
+    "ts-loader": "^9.2.2",
+    "typescript": "^4.3.2",
+    "vscode-test": "^1.5.2",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0"
+  }
 }
