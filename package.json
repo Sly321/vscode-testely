@@ -2,12 +2,31 @@
   "name": "testely",
   "displayName": "testely",
   "description": "Testely wants to help you in your test writing process.",
+  "icon": "assets/testely-logo.png",
   "version": "0.1.0",
+  "author": {
+    "name": "Sven Liebig",
+    "url": "https://github.com/Sly321/vscode-testely"
+  },
+  "publisher": "Sly321",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sly321/vscode-testely.git"
+  },
+  "homepage": "https://github.com/Sly321/vscode-testely",
+  "bugs": {
+    "url": "https://github.com/Sly321/vscode-testely/issues"
+  },
   "engines": {
     "vscode": "^1.59.0"
   },
   "categories": [
     "Testing"
+  ],
+  "keywords": [
+    "testing",
+    "test",
+    "typescript"
   ],
   "activationEvents": [
     "*"
