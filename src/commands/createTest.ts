@@ -1,5 +1,6 @@
 
 import * as vscode from 'vscode';
+import { GeneratorError } from '../generators/Generator';
 import { getGeneratorByLanguageId } from "../generators/getGeneratorByLanguageId";
 
 export async function createTestCommand(document: vscode.TextDocument) {
@@ -14,14 +15,17 @@ export async function createTestCommand(document: vscode.TextDocument) {
 	}
 
 	const generator = getGeneratorByLanguageId(document);
-	const filePath = await generator.generate();
 
-	const testFileUri = vscode.Uri.file(filePath);
-
-	// refactor: fn open doc by fileName
-	const doc = await vscode.workspace.openTextDocument(testFileUri);
-	vscode.window.showTextDocument(doc, 1, false);
-
-	//
-	vscode.window.showInformationMessage('Hello World from testely!');
+	try {
+		const filePath = await generator.generate();
+		const testFileUri = vscode.Uri.file(filePath);
+		
+		// refactor: fn open doc by fileName
+		const doc = await vscode.workspace.openTextDocument(testFileUri);
+		vscode.window.showTextDocument(doc, 1, false);
+	} catch(e) {
+		if (e instanceof GeneratorError) {
+			vscode.window.showErrorMessage(e.message);
+		}
+	}
 }

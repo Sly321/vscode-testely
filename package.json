@@ -2,12 +2,12 @@
   "name": "testely",
   "displayName": "testely",
   "description": "Testely wants to help you in your test writing process.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.59.0"
   },
   "categories": [
-    "Other"
+    "Testing"
   ],
   "activationEvents": [
     "*"

@@ -21,9 +21,10 @@ You can create a test with:
 - editor title icon (create test)
 - explorer context menu
 
+If the tests already exists, it will open the existing test instead.
+
 ### TODO
 
-- If test already exists, open the document in `vscode`
 - Options: open test after creation
 - Options: test project structure, Same directory, nested directory, test root directory
 - get workspace context, react, testing lib, etc. and start creating content for tests
