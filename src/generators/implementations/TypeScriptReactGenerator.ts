@@ -1,18 +1,65 @@
-import { existsSync } from "fs";
-import { writeFile } from "fs/promises";
-import { Generator } from "../Generator";
+import { FrontendProjectMeta } from "../../helpers/ProjectMeta";
+import { TypeScriptFileWriter, TypeScriptGenerator } from "./TypeScriptGenerator";
 
-export class TypeScriptReactGenerator extends Generator {
+export class TypeScriptReactGenerator extends TypeScriptGenerator {
+	getFileWriter(filePath: string) {
+		return new TypeScriptReactFileWriter(filePath);
+	}
+}
+export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
+	private isHook = false;
 
-	async generate(): Promise<string> {
-		const { filePath } = await this.createPaths();
+	constructor(filePath: string) {
+		super(filePath);
+		this.isHook = this.componentName.startsWith("use");
+	}
 
-		if (existsSync(filePath)) {
-			return filePath;
+	useProjectMeta(projectMeta: FrontendProjectMeta): void {
+		if (projectMeta["@testing-library/react"]) {
+			this.addImport({ "from": "@testing-library/react", named: ["screen, render"] });
+
+			if (this.isHook) {
+				this.exampleTestContent.push(`\t\trender(<UseHook />)`);
+			} else {
+				this.exampleTestContent.push(`\t\trender(<${this.componentName} />)`);
+			}
+
+			if (projectMeta.jest) {
+				if (this.isHook) {
+					this.exampleTestContent.push(`\t\texpect(screen.getByTestId("result").innerHTML).toEqual("{}")`);
+				} else {
+					this.exampleTestContent.push(`\t\texpect(screen.getByTestId("")).toBeInTheDocument()`);
+				}
+			}
 		}
 
-		await writeFile(filePath, "", { encoding: "utf8" });
+		this.addImport({ named: this.componentName, from: `../${this.componentName}` });
 
-		return filePath;
+		if (projectMeta.jest) {
+
+			if (this.isHook) {
+				this.testWrapper = (testContent: string) => {
+					return `describe("${this.componentName}", () => {\n` + 
+					`\n` +
+					`\tfunction UseHook() {\n` +
+					`\t\tconst { data } = ${this.componentName}()\n` +
+					`\t\treturn <div data-testid="result">{JSON.stringify(data)}</div>\n` +
+					`\t}\n` +
+					`\n` +
+					`\tit(\`should ...\`, () => {\n` + 
+					`${testContent}\n` + 
+					`\t})\n` + 
+					`})`;
+				};
+			} else {
+				this.testWrapper = (testContent: string) => {
+					return `describe("${this.componentName}", () => {\n` + 
+					`\tit(\`should ...\`, () => {\n` + 
+					`${testContent}\n` + 
+					`\t})\n` + 
+					`})`;
+				};
+			}
+		}
 	}
 }

@@ -3,12 +3,12 @@
   "displayName": "testely",
   "description": "Testely wants to help you in your test writing process.",
   "icon": "assets/testely-logo.png",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Sven Liebig",
     "url": "https://github.com/Sly321/vscode-testely"
   },
-  "publisher": "Sly321",
+  "publisher": "svenliebig",
   "repository": {
     "type": "git",
     "url": "https://github.com/Sly321/vscode-testely.git"
@@ -45,7 +45,7 @@
       "commandPalette": [
         {
           "command": "testely.createTest",
-          "group": "DD",
+          "group": "Testely",
           "when": "editorLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g"
         }
       ],
@@ -63,6 +63,10 @@
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "Testely Configuration",
+      "properties": {}
     }
   },
   "scripts": {
@@ -76,7 +80,8 @@
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
     "test:helpers": "node ./out/test/helpers/index.js",
-    "test:helpers:watch": "nodemon --watch ./out/helpers --watch ./out/test/helpers ./out/test/helpers/index.js"
+    "test:helpers:watch": "nodemon --watch ./out/helpers --watch ./out/test/helpers ./out/test/helpers/index.js",
+    "test:generators:watch": "nodemon --watch ./out/generators --watch ./out/test/generators ./out/test/generators/index.js"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",

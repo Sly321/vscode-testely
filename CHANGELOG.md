@@ -1,7 +1,9 @@
 # Change Log
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [0.2.0]
 
-## [Unreleased]
+- Add content to the test files.
 
-- Initial release
+## [0.1.0]
+
+- Implement the possibility to create tests from `typescript` and `typescriptreact` files.
