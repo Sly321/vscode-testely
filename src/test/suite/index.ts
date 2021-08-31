@@ -36,5 +36,3 @@ export function run(): Promise<void> {
 		});
 	});
 }
-
-run();
