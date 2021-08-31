@@ -63,4 +63,5 @@ Ensure that you've read through the extensions guidelines and follow the best pr
 
 ### Dev Ressources
 
-https://code.visualstudio.com/api/references/when-clause-contexts
+- https://code.visualstudio.com/api/references/when-clause-contexts
+- Release Setup https://dev.to/shaimendel/vs-code-extension-building-auto-ci-cd-with-github-actions-2dmf
