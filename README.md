@@ -44,8 +44,7 @@ For example:
 
 This extension contributes the following settings:
 
-- `myExtension.enable`: enable/disable this extension
-- `myExtension.thing`: set to `blah` to do something
+- `testely.testLocation`: sets the folder where you want the test files to be created.
 
 ## Known Issues
 

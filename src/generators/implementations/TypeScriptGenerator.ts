@@ -1,8 +1,7 @@
-import { existsSync } from "fs";
 import { readFile } from "fs/promises";
-import { basename, join, parse, relative, sep } from "path";
+import { join, parse, relative, sep } from "path";
 import { TextDocument } from "vscode";
-import { cutExtension, getNearest } from "../../helpers/fs-ultra";
+import { getNearest } from "../../helpers/fs-ultra";
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta";
 import { FileWriter, Generator, GeneratorError } from "../Generator";
 
@@ -40,7 +39,7 @@ export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
 		}
 	}
 
-	getFileWriter(filePath: string) {
+	override getFileWriter(filePath: string) {
 		return new TypeScriptFileWriter(filePath, this.document);
 	}
 }
@@ -60,7 +59,6 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
 
 	constructor(testFilePath: string, source: TextDocument) {
 		super(testFilePath);
-
 
 		const { dir: sourceFileDir, name: sourceFileName } = parse(source.uri.fsPath)
 		const { dir: testFileDir } = parse(testFilePath)

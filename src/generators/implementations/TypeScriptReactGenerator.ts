@@ -3,7 +3,7 @@ import { FrontendProjectMeta } from "../../helpers/ProjectMeta";
 import { TypeScriptFileWriter, TypeScriptGenerator } from "./TypeScriptGenerator";
 
 export class TypeScriptReactGenerator extends TypeScriptGenerator {
-	getFileWriter(filePath: string) {
+	override getFileWriter(filePath: string) {
 		return new TypeScriptReactFileWriter(filePath, this.document);
 	}
 }
@@ -15,7 +15,7 @@ export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
 		this.isHook = this.componentName.startsWith("use");
 	}
 
-	useProjectMeta(projectMeta: FrontendProjectMeta): void {
+	override useProjectMeta(projectMeta: FrontendProjectMeta): void {
 		if (projectMeta["@testing-library/react"]) {
 			this.addImport({ "from": "@testing-library/react", named: ["screen, render"] });
 
