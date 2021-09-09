@@ -29,8 +29,8 @@ export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
 
 			return {
 				"@testing-library/react": !!dependencies["@testing-library/react"],
-				react: !!dependencies["react"],
-				jest: !!dependencies["jest"],
+				react: !!dependencies["react"] || !!dependencies["react-scripts"],
+				jest: !!dependencies["jest"] || !!dependencies["react-scripts"],
 				mocha: !!dependencies["mocha"]
 			};
 		} catch (e) {
