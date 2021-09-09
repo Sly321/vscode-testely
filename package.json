@@ -66,8 +66,25 @@
       ]
     },
     "configuration": {
-      "title": "Testely Configuration",
-      "properties": {}
+      "title": "Testely",
+      "properties": {
+        "testely.testLocation": {
+          "type": "string",
+          "markdownDescription": "Specifies where the tasks will be located.",
+          "default": "same directory (nested)",
+          "markdownEnumDescriptions": [
+            "The tests will be created in the same directory. Example:\n\n    src\n     └── components \n         ├── Component.tsx \n         └── Component.test.tsx", 
+            "The tests will be created in a nested directory inside the directory of the source file. Example:\n\n    src\n     └── components \n         ├── __tests__\n         │   └── Component.test.tsx\n         └── Component.tsx",
+            "The tests will be created in a test at the project root directory. Example:\n\n    src\n     └── components \n         └── Component.tsx\n    test\n     └── components \n         └── Component.test.tsx\n"
+          ],
+          "enum": ["same directory", "same directory (nested)", "root test folder"]
+        },
+        "testely.testDirectoryName": {
+          "type": "string",
+          "markdownDescription": "Specifies the name of the test directory. Is only used when `#testely.testLocation#` is set to a value that writes an directory.",
+          "default": "__tests__"
+        }
+      }
     }
   },
   "release": {

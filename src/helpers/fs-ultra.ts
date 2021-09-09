@@ -1,4 +1,5 @@
-import { readdir, stat } from "fs/promises";
+import { existsSync } from "fs";
+import { mkdir, readdir, stat } from "fs/promises";
 import { join, sep } from "path";
 
 export async function isFolder(path: string) {
@@ -7,13 +8,28 @@ export async function isFolder(path: string) {
 }
 
 export function addTestToFileName(fileName: string) {
-    const dotIndex = fileName.lastIndexOf(".");
-    return fileName.substring(0, dotIndex) + ".test" + fileName.substring(dotIndex);
+	const dotIndex = fileName.lastIndexOf(".");
+	return fileName.substring(0, dotIndex) + ".test" + fileName.substring(dotIndex);
+}
+
+export function cutExtension(fileName: string) {
+	const dotIndex = fileName.lastIndexOf(".");
+	return fileName.substring(0, dotIndex)
+}
+
+export async function assureDir(path: string) {
+	if (existsSync(path)) {
+		if (!isFolder(path)) {
+			throw new Error(`Path is not a folder. Stop messing around. (${path})`);
+		}
+	} else {
+		await mkdir(path);
+	}
 }
 
 export async function getNearest(fileName: string, from: string): Promise<string | null> {
 	const res = await stat(from);
-	
+
 	if (res.isDirectory()) {
 		const dir = await readdir(from);
 
@@ -31,7 +47,7 @@ export async function getNearest(fileName: string, from: string): Promise<string
 	if (!index) {
 		return null;
 	}
-	
+
 	const lower = from.slice(0, index);
 	return getNearest(fileName, lower);
 }
