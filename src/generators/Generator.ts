@@ -70,7 +70,7 @@ export abstract class Generator<T extends ProjectMeta> {
 		}
 
 		const writer = this.getFileWriter(filePath);
-		writer.useProjectMeta(await this.getProjectMeta());
+		await writer.prepare(await this.getProjectMeta());
 
 		await writer.write();
 
@@ -82,7 +82,7 @@ export abstract class FileWriter<T extends ProjectMeta> {
 	constructor(private filePath: string) { }
 
 	abstract generateContent(): string;
-	abstract useProjectMeta(meta: T): void;
+	abstract prepare(meta: T): Promise<void>;
 
 	async write(): Promise<void> {
 		return await writeFile(this.filePath, this.generateContent(), { encoding: "utf8" });
