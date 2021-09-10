@@ -24,7 +24,23 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	context.subscriptions.push(disposable);
+	let disposable2 = vscode.commands.registerCommand("testely.openSourceFile", (args, thisArg) => {
+		if (args) {
+			vscode.workspace.openTextDocument(args).then(document => {
+				return createTestCommand(document);
+			});
+		} else {
+			const { document } = vscode.window.activeTextEditor || {};
+
+			if (!document) {
+				return vscode.window.showErrorMessage("Could not manage to find file for test creation.");
+			}
+
+			return createTestCommand(document);
+		}
+	});
+
+	context.subscriptions.push(disposable, disposable2);
 }
 
 export function deactivate() { }

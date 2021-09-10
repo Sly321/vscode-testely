@@ -40,6 +40,12 @@
         "title": "Create Test",
         "category": "Testely",
         "icon": "$(test-view-icon)"
+      },
+      {
+        "command": "testely.openSourceFile",
+        "title": "Open Source",
+        "category": "Testely",
+        "icon": "$(test-view-icon)"
       }
     ],
     "menus": {
@@ -48,12 +54,22 @@
           "command": "testely.createTest",
           "group": "Testely",
           "when": "editorLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g"
+        },
+        {
+          "command": "testely.openSourceFile",
+          "group": "Testely",
+          "when": "editorLangId in testely.supportedLangIds && resourceFilename =~ /^.+(.test.(\\w+))$/g"
         }
       ],
       "explorer/context": [
         {
           "command": "testely.createTest",
           "when": "resourceLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g",
+          "group": "Testely"
+        },
+        {
+          "command": "testely.openSourceFile",
+          "when": "resourceLangId in testely.supportedLangIds && resourceFilename =~ /^.+(.test.(\\w+))$/g",
           "group": "Testely"
         }
       ],
@@ -62,9 +78,21 @@
           "command": "testely.createTest",
           "when": "resourceLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g",
           "group": "navigation"
+        },
+        {
+          "command": "testely.openSourceFile",
+          "when": "resourceLangId in testely.supportedLangIds && resourceFilename =~ /^.+(.test.(\\w+))$/g",
+          "group": "navigation"
         }
       ]
     },
+    "keybindings": [
+      {
+        "when": "editorTextFocus && editorLangId in testely.supportedLangIds && resourceFilename =~ /^.+(?<!.test.(\\w+))$/g",
+        "command": "testely.createTest",
+        "key": "Ctrl+Shift+J"
+      }
+    ],
     "configuration": {
       "title": "Testely",
       "properties": {
@@ -73,15 +101,19 @@
           "markdownDescription": "Specifies where the tasks will be located.",
           "default": "same directory (nested)",
           "markdownEnumDescriptions": [
-            "The tests will be created in the same directory. Example:\n\n    src\n     └── components \n         ├── Component.tsx \n         └── Component.test.tsx", 
+            "The tests will be created in the same directory. Example:\n\n    src\n     └── components \n         ├── Component.tsx \n         └── Component.test.tsx",
             "The tests will be created in a nested directory inside the directory of the source file. Example:\n\n    src\n     └── components \n         ├── __tests__\n         │   └── Component.test.tsx\n         └── Component.tsx",
             "The tests will be created in a test at the project root directory. Example:\n\n    src\n     └── components \n         └── Component.tsx\n    test\n     └── components \n         └── Component.test.tsx\n"
           ],
-          "enum": ["same directory", "same directory (nested)", "root test folder"]
+          "enum": [
+            "same directory",
+            "same directory (nested)",
+            "root test folder"
+          ]
         },
         "testely.testDirectoryName": {
           "type": "string",
-          "markdownDescription": "Specifies the name of the test directory. Is only used when `#testely.testLocation#` is set to a value that writes an directory.",
+          "markdownDescription": "Specifies the name of the test directory. Is only used when `#testely.testLocation#` is set to `same directory (nested)`.",
           "default": "__tests__"
         }
       }

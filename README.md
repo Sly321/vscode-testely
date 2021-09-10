@@ -20,13 +20,13 @@ You can create a test with:
 - command pallete
 - editor title icon (create test)
 - explorer context menu
+- keybind `Ctrl`+`Shift`+`J` inside of an editor
 
 If the tests already exists, it will open the existing test instead.
 
 ### TODO
 
 - Options: open test after creation
-- Options: test project structure, Same directory, nested directory, test root directory
 - get workspace context, react, testing lib, etc. and start creating content for tests
 - global error try catch, catch on root and only use errors inside the rest of the application, reduce vscode import dependency
 
@@ -45,6 +45,7 @@ For example:
 This extension contributes the following settings:
 
 - `testely.testLocation`: sets the folder where you want the test files to be created.
+- `testely.testDirectoryName`: the name of the drectory, is used for `same directory (nested)` of `testely.testLocatiopn`.
 
 ## Known Issues
 

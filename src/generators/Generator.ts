@@ -1,15 +1,15 @@
 import { existsSync, mkdirSync } from 'fs';
-import { mkdir, writeFile } from 'fs/promises';
-import { basename, join, parse, relative, sep } from 'path';
+import { writeFile } from 'fs/promises';
+import { join, parse, sep } from 'path';
 import * as vscode from 'vscode';
 import { configuration, TestLocation } from '../configuration';
-import { addTestToFileName, isFolder, assureDir } from '../helpers/fs-ultra';
+import { addTestToFileName, assureDir, getRootWorkspaceFolder } from '../helpers/fs-ultra';
 import { ProjectMeta } from '../helpers/ProjectMeta';
 
 export class GeneratorError extends Error { }
 
 export abstract class Generator<T extends ProjectMeta> {
-	protected configuration = configuration
+	protected configuration = configuration;
 
 	constructor(protected document: vscode.TextDocument) {
 	}
@@ -26,44 +26,40 @@ export abstract class Generator<T extends ProjectMeta> {
 			case TestLocation.RootTestFolder:
 				return this.createRootTestFolderPath();
 			default:
-				throw new Error(`Unknown testely.testLocation config value: ${this.configuration.getTestLocation()}.`)
+				throw new Error(`Unknown testely.testLocation config value: ${this.configuration.getTestLocation()}.`);
 		}
 	}
 
 	private async createSameDirectoryNestedPath() {
 		const { dir: folder, base: fileName } = parse(this.document.uri.fsPath);
-		const testFolder = join(folder, "__test__");
+		const testFolder = join(folder, configuration.getTestDirectoryName());
 		const testFile = join(testFolder, addTestToFileName(fileName));
 
-		await assureDir(testFolder)
+		await assureDir(testFolder);
 
-		return { filePath: testFile }
+		return { filePath: testFile };
 	}
 
 	private async createSameDirectoryPath() {
 		const { dir: folder, base: fileName } = parse(this.document.uri.fsPath);
 		const testFile = join(folder, addTestToFileName(fileName));
 
-		await assureDir(folder)
+		await assureDir(folder);
 
-		return { filePath: testFile }
+		return { filePath: testFile };
 	}
 
 	private async createRootTestFolderPath() {
 		const { uri } = this.document;
-		const root = vscode.workspace.getWorkspaceFolder(uri)
+		const root = getRootWorkspaceFolder(uri);
 
-		if (!root) {
-			throw new GeneratorError("Wasn't able to find a workspace to your file. What the actual F.")
-		}
-
-		const testFolder = join(root.uri.fsPath, "test")
-		const fileName = addTestToFileName(uri.fsPath.replace(root.uri.fsPath, "").split(sep).slice(2).join(sep))
+		const testFolder = join(root, "test");
+		const fileName = addTestToFileName(uri.fsPath.replace(root, "").split(sep).slice(2).join(sep));
 		const testFile = join(testFolder, fileName);
 
-		mkdirSync(testFile.substring(0, testFile.lastIndexOf(sep)), { recursive: true })
+		mkdirSync(testFile.substring(0, testFile.lastIndexOf(sep)), { recursive: true });
 
-		return { filePath: testFile }
+		return { filePath: testFile };
 	}
 
 	async generate(): Promise<string> {

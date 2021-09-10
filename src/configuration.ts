@@ -1,24 +1,29 @@
-import { ConfigurationChangeEvent, workspace } from "vscode"
+import { ConfigurationChangeEvent, workspace } from "vscode";
 
-const configKey = 'testely'
+const configKey = 'testely';
 
 export class Configuration {
 	private configs = {
-		testLocation: new SingletonConfigValue<TestLocation>("testLocation")
-	}
+		testLocation: new SingletonConfigValue<TestLocation>("testLocation"),
+		testDirectoryName: new SingletonConfigValue<TestLocation>("testDirectoryName")
+	};
 
 	constructor() {
-		workspace.onDidChangeConfiguration(this.onConfigChange, this)
+		workspace.onDidChangeConfiguration(this.onConfigChange, this);
 	}
 
 	private onConfigChange(event: ConfigurationChangeEvent) {
 		if (event.affectsConfiguration(configKey)) {
-			Object.values(this.configs).forEach(config => config.renew())
+			Object.values(this.configs).forEach(config => config.renew());
 		}
 	}
 
 	public getTestLocation(): string {
-		return this.configs.testLocation.get()
+		return this.configs.testLocation.get();
+	}
+
+	public getTestDirectoryName(): string {
+		return this.configs.testDirectoryName.get();
 	}
 }
 
@@ -29,27 +34,27 @@ export enum TestLocation {
 }
 
 class SingletonConfigValue<T> {
-	private value: T | undefined
+	private value: T | undefined;
 
 	constructor(private key: string) {
-		this.value = this.getConfigValue()
+		this.value = this.getConfigValue();
 	}
 
 	private getConfigValue(): T | undefined {
-		return workspace.getConfiguration(configKey).get<T>(this.key)
+		return workspace.getConfiguration(configKey).get<T>(this.key);
 	}
 
 	public renew() {
-		this.value = this.getConfigValue()
+		this.value = this.getConfigValue();
 	}
 
 	public get(): T {
-		return this.value!
+		return this.value!;
 	}
 
 	public getKey(): string {
-		return `${configKey}.${this.key}`
+		return `${configKey}.${this.key}`;
 	}
 }
 
-export const configuration = new Configuration()
+export const configuration = new Configuration();
