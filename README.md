@@ -2,6 +2,10 @@
 
 This extension wants to increase the productivity while writing tests for your project. Unit tests are often small and most of the time is wasted with boilerplate code like `import { render } from '@testing/library-react'` and all these little things.
 
+## Showcase
+
+![tool](assets/showcaseCreateTest.gif)
+
 ## Features
 
 Currently working on the support for:
