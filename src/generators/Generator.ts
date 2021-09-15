@@ -6,12 +6,12 @@ import { configuration, TestLocation } from "../configuration"
 import { addTestToFileName, assureDir, getRootWorkspaceFolder } from "../helpers/fs-ultra"
 import { ProjectMeta } from "../helpers/ProjectMeta"
 
-export class GeneratorError extends Error {}
+export class GeneratorError extends Error { }
 
 export abstract class Generator<T extends ProjectMeta> {
     protected configuration = configuration
 
-    constructor(protected document: vscode.TextDocument) {}
+    constructor(protected document: vscode.TextDocument) { }
 
     abstract getFileWriter(filePath: string): FileWriter<T>
     abstract getProjectMeta(): Promise<T>
@@ -85,7 +85,6 @@ export abstract class Generator<T extends ProjectMeta> {
 
         const writer = this.getFileWriter(filePath)
         await writer.prepare(await this.getProjectMeta())
-
         await writer.write()
 
         return filePath
@@ -93,9 +92,9 @@ export abstract class Generator<T extends ProjectMeta> {
 }
 
 export abstract class FileWriter<T extends ProjectMeta> {
-    constructor(private filePath: string) {}
+    constructor(protected filePath: string) { }
 
-    abstract generateContent(): string
+    protected abstract generateContent(): string
     abstract prepare(meta: T): Promise<void>
 
     async write(): Promise<void> {
