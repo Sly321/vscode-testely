@@ -40,7 +40,7 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: npx semantic-release
+        run: yarn semantic-release
       - name: Vscode release plugin
         uses: JCofman/vscodeaction@master
         env:
