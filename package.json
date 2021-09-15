@@ -103,12 +103,14 @@
           "markdownEnumDescriptions": [
             "The tests will be created in the same directory. Example:\n\n    src\n     └── components \n         ├── Component.tsx \n         └── Component.test.tsx",
             "The tests will be created in a nested directory inside the directory of the source file. Example:\n\n    src\n     └── components \n         ├── __tests__\n         │   └── Component.test.tsx\n         └── Component.tsx",
-            "The tests will be created in a test at the project root directory. Example:\n\n    src\n     └── components \n         └── Component.tsx\n    test\n     └── components \n         └── Component.test.tsx\n"
+            "The tests will be created flat in a test at the project root directory. Example:\n\n    src\n     └── components \n         └── Component.tsx\n    test\n     └── Component.test.tsx\n",
+            "The tests will be created nested in a test at the project root directory. Example:\n\n    src\n     └── components \n         └── Component.tsx\n    test\n     └── components \n         └── Component.test.tsx\n"
           ],
           "enum": [
             "same directory",
             "same directory (nested)",
-            "root test folder"
+            "root test folder (flat)",
+            "root test folder (nested)"
           ]
         },
         "testely.testDirectoryName": {
@@ -121,6 +123,12 @@
   },
   "release": {
     "branches": "main",
+    "plugins": [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
     "verifyConditions": [
       "@semantic-release/github"
     ],
@@ -149,6 +157,7 @@
     "test:generators:watch": "nodemon --watch ./out/generators --watch ./out/test/generators ./out/test/generators/index.js"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/github": "^7.2.3",
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.2.2",
