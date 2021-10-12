@@ -3,7 +3,7 @@
   "displayName": "testely",
   "description": "Testely wants to help you in your test writing process.",
   "icon": "assets/testely-logo.png",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": {
     "name": "Sven Liebig",
     "url": "https://github.com/Sly321/vscode-testely"
