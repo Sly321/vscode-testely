@@ -148,7 +148,7 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
     }
 
     protected generateContent() {
-        const imports = this.imports.map(this.printImport).join("\n")
+        const imports = this.imports.map(TypeScriptFileWriter.printImport).join("\n")
         return `${imports !== "" ? `${imports}\n\n` : ""}` + `${this.content.join("\n")}`
     }
 
@@ -171,7 +171,7 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
         return exportsChosenByTheUser
     }
 
-    private printImport(imp: TypeScriptImport): string {
+    static printImport(imp: TypeScriptImport): string {
         let result = ""
 
         if (imp.default) {
