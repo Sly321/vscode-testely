@@ -2,11 +2,12 @@
 export interface ProjectMeta {}
 
 export interface FrontendProjectMeta extends ProjectMeta {
-	react: boolean
-	jest: boolean
-	mocha: boolean
-	["@testing-library/react"]: boolean
-};
+    react: boolean
+    jest: boolean
+    mocha: boolean
+    i18next: boolean
+    ["@testing-library/react"]: boolean
+}
 
 // class ProjectMetaProvider {
 // 	private lastPackage;
@@ -14,5 +15,5 @@ export interface FrontendProjectMeta extends ProjectMeta {
 // }
 
 // export function getProjectMeta(): ProjectMeta {
-	
+
 // }

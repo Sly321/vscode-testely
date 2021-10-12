@@ -1,154 +1,201 @@
 import { readFile } from "fs/promises"
-import { join, parse, relative, sep } from "path"
+import { join, parse, relative, resolve, sep } from "path"
 import * as vscode from "vscode"
 import { getNearest } from "../../helpers/fs-ultra"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
-import { ParsedStatement, TypeScriptParser } from "../../helpers/typescriptParser"
+import { ParsedStatement, TypeScriptParser, TypeScriptSource } from "../../helpers/typescriptParser"
 import { FileWriter, Generator, GeneratorError } from "../Generator"
 
 export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
-	async getProjectMeta(): Promise<FrontendProjectMeta> {
-		const {
-			uri: { fsPath },
-		} = this.document
-		const pkgPath = await getNearest("package.json", fsPath)
+    async getProjectMeta(): Promise<FrontendProjectMeta> {
+        const {
+            uri: { fsPath },
+        } = this.document
+        const pkgPath = await getNearest("package.json", fsPath)
 
-		if (pkgPath === null) {
-			return {
-				"@testing-library/react": false,
-				react: false,
-				jest: false,
-				mocha: false,
-			}
-		}
+        if (pkgPath === null) {
+            return {
+                "@testing-library/react": false,
+                react: false,
+                jest: false,
+                mocha: false,
+                i18next: false,
+            }
+        }
 
-		try {
-			const pkg = JSON.parse(await readFile(pkgPath, "utf8"))
+        try {
+            const pkg = JSON.parse(await readFile(pkgPath, "utf8"))
 
-			const dependencies = {
-				...pkg["devDependencies"],
-				...pkg["dependencies"],
-			}
+            const dependencies = {
+                ...pkg["devDependencies"],
+                ...pkg["dependencies"],
+            }
 
-			return {
-				"@testing-library/react": !!dependencies["@testing-library/react"],
-				react: !!dependencies["react"] || !!dependencies["react-scripts"],
-				jest: !!dependencies["jest"] || !!dependencies["react-scripts"],
-				mocha: !!dependencies["mocha"],
-			}
-		} catch (e) {
-			console.error(e)
-			throw new GeneratorError(`Error while reading ${pkgPath}.\n\n${e}.`)
-		}
-	}
+            return {
+                "@testing-library/react": !!dependencies["@testing-library/react"],
+                react: !!dependencies["react"] || !!dependencies["react-scripts"],
+                jest: !!dependencies["jest"] || !!dependencies["react-scripts"],
+                mocha: !!dependencies["mocha"],
+                i18next: !!dependencies["i18next"],
+            }
+        } catch (e) {
+            console.error(e)
+            throw new GeneratorError(`Error while reading ${pkgPath}.\n\n${e}.`)
+        }
+    }
 
-	override getFileWriter(filePath: string) {
-		return new TypeScriptFileWriter(filePath, this.document)
-	}
+    override getFileWriter(filePath: string) {
+        return new TypeScriptFileWriter(filePath, this.document)
+    }
 }
 
 export type TypeScriptImport = {
-	from: string
-	default?: string
-	named?: string | Array<string>
+    from: string
+    default?: string
+    named?: string | Array<string>
 }
 
 export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
-	protected importPath: string
+    protected importPath: string
 
-	private imports: Array<TypeScriptImport> = []
-	private content: Array<string> = []
+    private parsedSource: TypeScriptSource
+    private imports: Array<TypeScriptImport> = []
+    private content: Array<string> = []
 
-	constructor(testFilePath: string, private source: vscode.TextDocument) {
-		super(testFilePath)
+    constructor(testFilePath: string, private source: vscode.TextDocument) {
+        super(testFilePath)
 
-		const { dir: sourceFileDir, name: sourceFileName } = parse(source.uri.fsPath)
-		const { dir: testFileDir } = parse(testFilePath)
+        this.parsedSource = TypeScriptParser.getExportedStatements(this.source.getText())
+        const { dir: sourceFileDir, name: sourceFileName } = parse(source.uri.fsPath)
+        const { dir: testFileDir } = parse(testFilePath)
 
-		this.importPath = join(relative(testFileDir, sourceFileDir), sourceFileName).split(sep).join("/")
-	}
+        this.importPath = join(relative(testFileDir, sourceFileDir), sourceFileName).split(sep).join("/")
+    }
 
-	async prepare(projectMeta: FrontendProjectMeta): Promise<void> {
-		const exports = await this.getExports()
+    private getRelativeImportPath(path: string) {
+        const { dir: sourceFileDir } = parse(this.source.uri.fsPath)
+        const { dir: testFileDir } = this.parsedFilePath
 
-		this.addImport({ named: exports.map((exp) => exp.name), from: `${this.importPath}` })
+        const importFile = resolve(sourceFileDir, path)
+        const { name: importFileName, dir: importFileDir } = parse(importFile)
+        return join(relative(testFileDir, importFileDir), importFileName).split(sep).join("/")
+    }
 
-		if (exports.length === 0) {
-			if (projectMeta.jest) {
-				this.addContent(...this.addDefaultTest("defaultFn"))
-			}
-		} else if (projectMeta.jest) {
-			exports.forEach((exp) => {
-				this.addContent(...this.addDefaultTest(exp.name))
-			})
-		}
-	}
+    async prepare(projectMeta: FrontendProjectMeta): Promise<void> {
+        const exports = await this.getExports()
 
-	protected addDefaultTest(fnName: string) {
-		return [`describe("${fnName}", () => {`,
-			`    it("should ...", () => {`,
-		`        expect(${fnName}()).toEqual(null)`,
-			`    })`,
-			`})`,
-			``]
-	}
+        this.addImport({ named: exports.map((exp) => exp.name), from: `${this.importPath}` })
 
-	protected addImport(...imp: Array<TypeScriptImport>): void {
-		this.imports.push(...imp)
-	}
+        if (exports.length === 0) {
+            if (projectMeta.jest) {
+                this.addContent(...this.addDefaultTest("defaultFn"))
+            }
+        } else if (projectMeta.jest) {
+            exports.forEach((exp) => {
+                // TODO make it more flexible in the future
+                if (exp.name.startsWith("translate") && projectMeta.i18next) {
+                    const imports = this.parsedSource.getImports()
 
-	protected addContent(...content: Array<string>): void {
-		this.content.push(...content)
-	}
+                    let enumIdentifier: string | null = null
 
-	protected generateContent() {
-		const imports = this.imports.map(this.printImport).join("\n")
-		return `${imports !== "" ? `${imports}\n\n` : ""}` + `${this.content.join("\n")}`
-	}
+                    imports.forEach((imp) => {
+                        if (imp.name !== "i18n") {
+                            enumIdentifier = imp.name
+                        }
 
-	/**
-	 * 
-	 */
-	protected async getExports(): Promise<Array<ParsedStatement>> {
-		const exportedStatements = TypeScriptParser.getExportedStatements(this.source.getText())
+                        if (imp.default) {
+                            this.addImport({
+                                from: this.getRelativeImportPath(imp.from),
+                                default: imp.name,
+                            })
+                        }
 
-		let exports: Array<ParsedStatement> = exportedStatements
-		if (exportedStatements.length > 1) {
-			const results = await vscode.window.showQuickPick(
-				exportedStatements.map((exp) => exp.name),
-				{ canPickMany: true, title: "Choose the exports that the test should cover." }
-			)
-			exports = exportedStatements.filter((exp) => results?.includes(exp.name))
-		}
+                        if (imp.named) {
+                            this.addImport({
+                                from: this.getRelativeImportPath(imp.from),
+                                named: imp.name,
+                            })
+                        }
+                    })
 
-		return exports
-	}
+                    this.addContent(
+                        `describe("${exp.name}", () => {`,
+                        `    Object.values(${enumIdentifier}).forEach((value) => {`,
+                        `        it(\`should translate \${value}\`, () => {`,
+                        `            const translation = ${exp.name}(value)`,
+                        `            expect(translation).toEqual(i18n.t(\`.\${value}\`))`,
+                        `        })`,
+                        `    })`,
+                        `})`
+                    )
+                } else {
+                    this.addContent(...this.addDefaultTest(exp.name))
+                }
+            })
+        }
+    }
 
-	private printImport(imp: TypeScriptImport): string {
-		let result = ""
+    protected addDefaultTest(fnName: string) {
+        return [`describe("${fnName}", () => {`, `    it("should ...", () => {`, `        expect(${fnName}()).toEqual(null)`, `    })`, `})`, ``]
+    }
 
-		if (imp.default) {
-			result += `${imp.default}`
-		}
+    protected addImport(...imp: Array<TypeScriptImport>): void {
+        this.imports.push(...imp)
+    }
 
-		if (imp.named) {
-			let namedImports = ""
+    protected addContent(...content: Array<string>): void {
+        this.content.push(...content)
+    }
 
-			if (Array.isArray(imp.named)) {
-				if (imp.named.length > 0) {
-					namedImports = `{ ${imp.named.join(", ")} }`
-				}
-			} else if (imp.named !== "") {
-				namedImports += `{ ${imp.named} }`
-			}
+    protected generateContent() {
+        const imports = this.imports.map(this.printImport).join("\n")
+        return `${imports !== "" ? `${imports}\n\n` : ""}` + `${this.content.join("\n")}`
+    }
 
-			if (namedImports !== "") {
-				result += `${result !== "" ? ", " : ""}${namedImports}`
-			}
-		}
+    /**
+     *
+     */
+    protected async getExports(): Promise<Array<ParsedStatement>> {
+        const exportedDeclarations: Array<ParsedStatement> = this.parsedSource.getExportedDeclarations()
 
-		result += `${result !== "" ? " from " : ""}"${imp.from}"`
+        let exportsChosenByTheUser: Array<ParsedStatement> = exportedDeclarations
 
-		return `import ${result}`
-	}
+        if (exportedDeclarations.length > 1) {
+            const results = await vscode.window.showQuickPick(
+                exportedDeclarations.map((exp) => exp.name),
+                { canPickMany: true, title: "Choose the exports that the test should cover." }
+            )
+            exportsChosenByTheUser = exportedDeclarations.filter((exp) => results?.includes(exp.name))
+        }
+
+        return exportsChosenByTheUser
+    }
+
+    private printImport(imp: TypeScriptImport): string {
+        let result = ""
+
+        if (imp.default) {
+            result += `${imp.default}`
+        }
+
+        if (imp.named) {
+            let namedImports = ""
+
+            if (Array.isArray(imp.named)) {
+                if (imp.named.length > 0) {
+                    namedImports = `{ ${imp.named.join(", ")} }`
+                }
+            } else if (imp.named !== "") {
+                namedImports += `{ ${imp.named} }`
+            }
+
+            if (namedImports !== "") {
+                result += `${result !== "" ? ", " : ""}${namedImports}`
+            }
+        }
+
+        result += `${result !== "" ? " from " : ""}"${imp.from}"`
+
+        return `import ${result}`
+    }
 }

@@ -1,17 +1,17 @@
-import { existsSync, mkdirSync } from "fs"
+import { existsSync, FSWatcher, mkdirSync } from "fs"
 import { writeFile } from "fs/promises"
-import { join, parse, sep } from "path"
+import { join, parse, ParsedPath, sep } from "path"
 import * as vscode from "vscode"
 import { configuration, TestLocation } from "../configuration"
 import { addTestToFileName, assureDir, getRootWorkspaceFolder } from "../helpers/fs-ultra"
 import { ProjectMeta } from "../helpers/ProjectMeta"
 
-export class GeneratorError extends Error { }
+export class GeneratorError extends Error {}
 
 export abstract class Generator<T extends ProjectMeta> {
     protected configuration = configuration
 
-    constructor(protected document: vscode.TextDocument) { }
+    constructor(protected document: vscode.TextDocument) {}
 
     abstract getFileWriter(filePath: string): FileWriter<T>
     abstract getProjectMeta(): Promise<T>
@@ -92,7 +92,11 @@ export abstract class Generator<T extends ProjectMeta> {
 }
 
 export abstract class FileWriter<T extends ProjectMeta> {
-    constructor(protected filePath: string) { }
+    protected parsedFilePath: ParsedPath
+
+    constructor(protected filePath: string) {
+        this.parsedFilePath = parse(filePath)
+    }
 
     protected abstract generateContent(): string
     abstract prepare(meta: T): Promise<void>
