@@ -1,4 +1,4 @@
-import { existsSync } from "fs";
+import { existsSync, readdirSync, statSync } from "fs";
 import { mkdir, readdir, stat } from "fs/promises";
 import { join, parse, sep } from "path";
 import * as vscode from "vscode";
@@ -62,9 +62,33 @@ export async function getNearest(fileName: string, from: string): Promise<string
 	return getNearest(fileName, lower);
 }
 
+function isSystemRootDirectoy(path: string): boolean {
+	return path.split(sep).length === 2 || path.lastIndexOf(sep) === 0
+}
+
+export function findPackageJson(startPath: string): string | null {
+	const fileOrDirectoryStatus = statSync(startPath);
+
+	if (fileOrDirectoryStatus.isDirectory()) {
+		const dir = readdirSync(startPath);
+
+		if (dir.includes("package.json")) {
+			return join(startPath, "package.json");
+		}
+	}
+
+	if (isSystemRootDirectoy(startPath)) {
+		return null;
+	}
+
+	const lower = startPath.slice(0, startPath.lastIndexOf(sep));
+	return findPackageJson(lower);
+}
+
+
 export function getRootWorkspaceFolder(uri: vscode.Uri) {
 	const root = vscode.workspace.getWorkspaceFolder(uri);
-	
+
 	if (!root) {
 		throw new Error("Wasn't able to find a workspace to your file. What the actual F.");
 	}
@@ -74,10 +98,10 @@ export function getRootWorkspaceFolder(uri: vscode.Uri) {
 
 export function getRootSourceFolder(uri: vscode.Uri) {
 	const root = vscode.workspace.getWorkspaceFolder(uri);
-	
+
 	if (!root) {
 		throw new Error("Wasn't able to find a workspace to your file. What the actual F.");
 	}
-	
+
 	return join(root?.uri.fsPath, "src");
 }
