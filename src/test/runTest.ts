@@ -1,7 +1,7 @@
 import * as path from 'path';
+import { resolve } from 'path';
 
 import { runTests } from 'vscode-test';
-import { TEMPORARY_TEST_DIRECTORY } from './utils';
 
 async function main() {
 	try {
@@ -14,7 +14,7 @@ async function main() {
 		const extensionTestsPath = path.resolve(__dirname, './suite/index');
 		
 		// Download VS Code, unzip it and run the integration test
-		await runTests({ extensionDevelopmentPath, extensionTestsPath, launchArgs: [TEMPORARY_TEST_DIRECTORY] });
+		await runTests({ extensionDevelopmentPath, extensionTestsPath, launchArgs: [resolve(__dirname, "..", "..", "test-resources", "workspace")] });
 	} catch (err) {
 		console.error('Failed to run tests');
 		process.exit(1);

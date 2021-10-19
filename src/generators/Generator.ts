@@ -17,6 +17,7 @@ export abstract class Generator<T extends ProjectMeta> {
     abstract getProjectMeta(): Promise<T>
 
     protected async createPaths(): Promise<{ filePath: string }> {
+        console.log("createPaths", this.configuration.getTestLocation())
         switch (this.configuration.getTestLocation()) {
             case TestLocation.SameDirectoryNested:
                 return this.createSameDirectoryNestedPath()
