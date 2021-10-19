@@ -1,4 +1,4 @@
-import {
+import ts, {
     createSourceFile,
     EnumDeclaration,
     isEnumDeclaration,
@@ -10,7 +10,6 @@ import {
     SyntaxKind,
     VariableStatement,
 } from "typescript"
-import ts = require("typescript")
 
 export type ParsedStatement = {
     name: string

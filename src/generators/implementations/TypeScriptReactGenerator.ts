@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
-import { File } from "../Generator"
+import { File } from "../File"
 import { TypeScriptFileWriter, TypeScriptGenerator } from "./TypeScriptGenerator"
 
 export class TypeScriptReactGenerator extends TypeScriptGenerator {

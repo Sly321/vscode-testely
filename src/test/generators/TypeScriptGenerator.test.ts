@@ -83,6 +83,28 @@ suite('TypeScriptGenerator.generate', () => {
 			})
 		})
 	})
+	
+	suite("one file, deeply nested", () => {
+		beforeEach(async () => {
+			await assureDir(join(TEMPORARY_TEST_DIRECTORY, "src", "components", "buttons", "special"))
+			writeFileSync(join(TEMPORARY_TEST_DIRECTORY, "src", "components", "buttons", "special", "westeros.ts"), "export function jon() { return \"snow\" }")
+		})
+
+		suite(`${ConfigurationKeys.testLocation}: ${TestLocation.RootTestFolderNested}`, () => {
+			before(async () => {
+				await vscode.workspace.getConfiguration(EXTENSION_CONFIG_KEY).update(ConfigurationKeys.testLocation, TestLocation.RootTestFolderNested)
+				await vscode.workspace.getConfiguration(EXTENSION_CONFIG_KEY).update(ConfigurationKeys.testDirectoryName, "test")
+			})
+	
+			test("should create a test file", async () => {
+				await openFile(join("src", "components", "buttons", "special", "westeros.ts"))
+				await vscode.commands.executeCommand("testely.createTest")
+				const testFileLocation = join(TEMPORARY_TEST_DIRECTORY, "test", "components", "buttons", "special", "westeros.test.ts");
+				assertFileExists(testFileLocation)
+				assert.strictEqual(readFileSync(testFileLocation, "utf-8").trim(), "import { jon } from \"../../../../src/components/buttons/special/westeros\"")
+			})
+		})
+	})
 })
 
 suite('TypeScritpFileWriter.printImport', () => {

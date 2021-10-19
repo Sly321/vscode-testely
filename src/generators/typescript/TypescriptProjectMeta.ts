@@ -1,5 +1,5 @@
-import { readFile, readFileSync } from "fs";
-import { getNearest, findPackageJson } from "../../helpers/fs-ultra";
+import { readFileSync } from "fs";
+import { findPackageJson } from "../../helpers/fs-ultra";
 import { GeneratorError } from "../Generator";
 import { ProjectMeta } from "../ProjectMeta";
 

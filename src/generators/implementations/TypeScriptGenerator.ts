@@ -4,7 +4,8 @@ import * as vscode from "vscode"
 import { getNearest } from "../../helpers/fs-ultra"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
 import { ParsedStatement, TypeScriptParser, TypeScriptSource } from "../../helpers/typescriptParser"
-import { File, FileWriter, Generator, GeneratorError } from "../Generator"
+import { FileWriter, Generator, GeneratorError } from "../Generator"
+import { File } from "../File"
 
 export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
     async getProjectMeta(): Promise<FrontendProjectMeta> {
