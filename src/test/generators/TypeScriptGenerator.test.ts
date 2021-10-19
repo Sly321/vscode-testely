@@ -3,24 +3,30 @@ import { TextDocument } from 'vscode';
 import { TypeScriptFileWriter, TypeScriptGenerator, TypeScriptImport } from '../../generators/implementations/TypeScriptGenerator';
 
 import * as vscode from 'vscode';
+import { cleanTestWorkspace, TEMPORARY_TEST_DIRECTORY } from '../utils';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
+import { assureDir } from '../../helpers/fs-ultra';
 
 suite('TypeScriptGenerator.generate', () => {
 	suiteSetup(() => {
-		console.log("asoidjkas")
-		vscode.workspace.workspaceFolders?.forEach(() => {
-			console.log("hello world")
+		console.log("1")
+		cleanTestWorkspace()
+	})
+	
+	suite('Test with only one ts file, not package json', () => {
+		suiteSetup(() => {
+			console.log("2")
+			cleanTestWorkspace()
+
+			writeFileSync(join(TEMPORARY_TEST_DIRECTORY, "westeros.ts"), "export function jon() { return \"snow\" }")
 		})
-		console.log("p;jlopgklj")
-	})
 
-	test("heeeeeeeeeeeeeee", function () {
-		assert.ok(true)
+		test("should create a test file for that file", () => {
+			vscode.workspace.openTextDocument("westeros.ts")
+			assert.ok(true)
+		})
 	})
-	// vscode.
-	// const sourceDocument: TextDocument = {
-
-	// }
-	// const generator = new TypeScriptGenerator()
 })
 
 suite('TypeScritpFileWriter.printImport', () => {

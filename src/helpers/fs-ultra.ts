@@ -33,7 +33,7 @@ export async function assureDir(path: string) {
 			throw new Error(`Path is not a folder. Stop messing around. (${path})`);
 		}
 	} else {
-		await mkdir(path);
+		await mkdir(path, { recursive: true });
 	}
 }
 
