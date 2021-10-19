@@ -24,9 +24,9 @@ export async function createTestCommand(document: vscode.TextDocument) {
 
         const generator = getGeneratorByLanguageId(document)
 
-        const filePath = await generator.generate()
+        const file = await generator.generate()
 
-        await showDocument(filePath)
+        await showDocument(file.getPath())
     } catch (e) {
         if (e.message) {
             vscode.window.showErrorMessage(e.message)

@@ -1,6 +1,6 @@
-import { existsSync, FSWatcher, mkdirSync } from "fs"
+import { existsSync, mkdirSync } from "fs"
 import { writeFile } from "fs/promises"
-import { join, parse, ParsedPath, sep } from "path"
+import { join, parse, sep } from "path"
 import * as vscode from "vscode"
 import { configuration, TestLocation } from "../configuration"
 import { addTestToFileName, assureDir, getRootWorkspaceFolder } from "../helpers/fs-ultra"
@@ -8,16 +8,55 @@ import { ProjectMeta } from "../helpers/ProjectMeta"
 
 export class GeneratorError extends Error {}
 
+export class File {
+    private path: string
+    private dir: string
+    private fileExists: boolean = false
+    private baseName: string
+
+    constructor(path: string) {
+        const { dir, base } = parse(path)
+        this.path = path
+        this.dir = dir
+        this.baseName = base
+    }
+
+    public setExist(value: boolean) {
+        this.fileExists = value
+        return this
+    }
+
+    public exists(): boolean {
+        return this.fileExists
+    }
+
+    public getDirectory(): string {
+        return this.dir
+    }
+
+    /** The file name including extension (if any) such as `index.html`.  */
+    public getBaseName(): string {
+        return this.baseName
+    }
+
+    public getPath(): string {
+        return this.path
+    }
+}
+
 export abstract class Generator<T extends ProjectMeta> {
     protected configuration = configuration
 
-    constructor(protected document: vscode.TextDocument) {}
+    private sourceFile: File
 
-    abstract getFileWriter(filePath: string): FileWriter<T>
+    constructor(protected document: vscode.TextDocument) {
+        this.sourceFile = new File(document.uri.fsPath)
+    }
+
+    abstract getFileWriter(file: File): FileWriter<T>
     abstract getProjectMeta(): Promise<T>
 
-    protected async createPaths(): Promise<{ filePath: string }> {
-        console.log("createPaths", this.configuration.getTestLocation())
+    protected async createTestFile(): Promise<File> {
         switch (this.configuration.getTestLocation()) {
             case TestLocation.SameDirectoryNested:
                 return this.createSameDirectoryNestedPath()
@@ -33,35 +72,35 @@ export abstract class Generator<T extends ProjectMeta> {
     }
 
     private async createSameDirectoryNestedPath() {
-        const { dir: folder, base: fileName } = parse(this.document.uri.fsPath)
-        const testFolder = join(folder, configuration.getTestDirectoryName())
-        const testFile = join(testFolder, addTestToFileName(fileName))
+        const testFolder = join(this.sourceFile.getDirectory(), this.configuration.getTestDirectoryName())
+        const testFilePath = join(testFolder, addTestToFileName(this.sourceFile.getBaseName()))
 
-        await assureDir(testFolder)
+        const file = new File(testFilePath)
 
-        return { filePath: testFile }
+        await assureDir(file.getDirectory())
+
+        return file
     }
 
     private async createSameDirectoryPath() {
-        const { dir: folder, base: fileName } = parse(this.document.uri.fsPath)
-        const testFile = join(folder, addTestToFileName(fileName))
+        const testFilePath = join(this.sourceFile.getDirectory(), addTestToFileName(this.sourceFile.getBaseName()))
+        const file = new File(testFilePath)
 
-        await assureDir(folder)
+        await assureDir(file.getDirectory())
 
-        return { filePath: testFile }
+        return file
     }
 
     private async createRootTestFolderFlatPath() {
         const { uri } = this.document
-        const { base: fileName } = parse(uri.fsPath)
         const root = getRootWorkspaceFolder(uri)
 
         const testFolder = join(root, "test")
-        const testFile = join(testFolder, addTestToFileName(fileName))
+        const testFile = join(testFolder, addTestToFileName(this.sourceFile.getBaseName()))
 
         mkdirSync(testFile.substring(0, testFile.lastIndexOf(sep)), { recursive: true })
 
-        return { filePath: testFile }
+        return new File(testFile)
     }
 
     private async createRootTestFolderNestedPath() {
@@ -74,35 +113,33 @@ export abstract class Generator<T extends ProjectMeta> {
 
         mkdirSync(testFile.substring(0, testFile.lastIndexOf(sep)), { recursive: true })
 
-        return { filePath: testFile }
+        return new File(testFile)
     }
 
-    async generate(): Promise<string> {
-        const { filePath } = await this.createPaths()
+    async generate(): Promise<File> {
+        const file = await this.createTestFile()
 
-        if (existsSync(filePath)) {
-            return filePath
+        if (existsSync(file.getPath())) {
+            file.setExist(true)
+            return file
         }
 
-        const writer = this.getFileWriter(filePath)
+        const writer = this.getFileWriter(file)
         await writer.prepare(await this.getProjectMeta())
         await writer.write()
 
-        return filePath
+        return file
     }
 }
 
 export abstract class FileWriter<T extends ProjectMeta> {
-    protected parsedFilePath: ParsedPath
-
-    constructor(protected filePath: string) {
-        this.parsedFilePath = parse(filePath)
+    constructor(protected file: File) {
     }
 
     protected abstract generateContent(): string
     abstract prepare(meta: T): Promise<void>
 
     async write(): Promise<void> {
-        return await writeFile(this.filePath, this.generateContent(), { encoding: "utf8" })
+        return await writeFile(this.file.getPath(), this.generateContent(), { encoding: "utf8" })
     }
 }

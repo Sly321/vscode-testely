@@ -1,15 +1,16 @@
 import { TextDocument } from "vscode"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
+import { File } from "../Generator"
 import { TypeScriptFileWriter, TypeScriptGenerator } from "./TypeScriptGenerator"
 
 export class TypeScriptReactGenerator extends TypeScriptGenerator {
-    override getFileWriter(filePath: string) {
-        return new TypeScriptReactFileWriter(filePath, this.document)
+    override getFileWriter(file: File) {
+        return new TypeScriptReactFileWriter(file, this.document)
     }
 }
 export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
-    constructor(filePath: string, doc: TextDocument) {
-        super(filePath, doc)
+    constructor(file: File, doc: TextDocument) {
+        super(file, doc)
     }
 
     override async prepare(projectMeta: FrontendProjectMeta): Promise<void> {
