@@ -11,9 +11,7 @@ import { cleanTestWorkspace, consoleLogTree, createTree, openFile, TEMPORARY_TES
 
 suite('TypeScriptGenerator.generate', () => {
 	beforeEach(() => {
-		console.log("clean")
 		cleanTestWorkspace()
-		console.log("clean end")
 	})
 
 	function assertFileExists(path: string) {
@@ -22,29 +20,21 @@ suite('TypeScriptGenerator.generate', () => {
 	
 	suite('one file, one export, no package.json', () => {
 		beforeEach(async () => {
-			console.log("be1")
 			await assureDir(join(TEMPORARY_TEST_DIRECTORY, "src"))
 			writeFileSync(join(TEMPORARY_TEST_DIRECTORY, "src", "westeros.ts"), "export function jon() { return \"snow\" }")
-			console.log("be1 end")
 		})
 		
 		suite(`${ConfigurationKeys.testLocation}: ${TestLocation.SameDirectoryNested}`, () => {
 			before(async () => {
-				console.log("ss1")
 				await vscode.workspace.getConfiguration(EXTENSION_CONFIG_KEY).update(ConfigurationKeys.testLocation, TestLocation.SameDirectoryNested)
-				console.log("ss1 end")
 			})
 			
 			test("should create a test file", async () => {
-				console.log("t1")
 				await openFile(join("src", "westeros.ts"))
-				console.log("t1 mid1")
 				await vscode.commands.executeCommand("testely.createTest")
 				const testFileLocation = join(TEMPORARY_TEST_DIRECTORY, "src", "__tests__", "westeros.test.ts");
-				console.log("t1 mid2")
 				assertFileExists(testFileLocation)
 				assert.strictEqual(readFileSync(testFileLocation, "utf-8").trim(), "import { jon } from \"../westeros\"")
-				console.log("t1 end")
 			})
 		})
 		

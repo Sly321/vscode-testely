@@ -8,7 +8,6 @@ export function cleanTestWorkspace() {
 	if (existsSync(TEMPORARY_TEST_DIRECTORY)) {
 		const filesOrDirectories = readdirSync(TEMPORARY_TEST_DIRECTORY)
 		filesOrDirectories.forEach(fileOrDirectory => {
-			console.log("clean:", fileOrDirectory)
 			if(fileOrDirectory !== ".gitkeep") {
 				rmSync(join(TEMPORARY_TEST_DIRECTORY, fileOrDirectory), { recursive: true });
 			}
@@ -24,7 +23,6 @@ export async function openFile(name: string) {
 type RecursiveStringArray = string | Array<string>;
 export function createTree(root: string) {
 	const result: Array<RecursiveStringArray> = []
-	console.log("createTree", root)
 	const filesOrDirectories = readdirSync(root)
 	filesOrDirectories.forEach(fileOrDirectory => {
 		if(fileOrDirectory !== ".gitkeep") {
