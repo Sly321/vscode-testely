@@ -1,5 +1,27 @@
 import * as assert from 'assert';
-import { TypeScriptFileWriter, TypeScriptImport } from '../../generators/implementations/TypeScriptGenerator';
+import { TextDocument } from 'vscode';
+import { TypeScriptFileWriter, TypeScriptGenerator, TypeScriptImport } from '../../generators/implementations/TypeScriptGenerator';
+
+import * as vscode from 'vscode';
+
+suite('TypeScriptGenerator.generate', () => {
+	suiteSetup(() => {
+		console.log("asoidjkas")
+		vscode.workspace.workspaceFolders?.forEach(() => {
+			console.log("hello world")
+		})
+		console.log("p;jlopgklj")
+	})
+
+	test("heeeeeeeeeeeeeee", function () {
+		assert.ok(true)
+	})
+	// vscode.
+	// const sourceDocument: TextDocument = {
+
+	// }
+	// const generator = new TypeScriptGenerator()
+})
 
 suite('TypeScritpFileWriter.printImport', () => {
 	test(`default import`, () => {

@@ -1,5 +1,6 @@
-import { readFile } from "fs";
+import { readFile, readFileSync } from "fs";
 import { getNearest, findPackageJson } from "../../helpers/fs-ultra";
+import { GeneratorError } from "../Generator";
 import { ProjectMeta } from "../ProjectMeta";
 
 export class TypescriptProjectMeta extends ProjectMeta {
@@ -22,7 +23,7 @@ export class TypescriptProjectMeta extends ProjectMeta {
 		}
 
 		try {
-			const pkg = JSON.parse(await readFile(pkgPath, "utf8"))
+			const pkg = JSON.parse(readFileSync(pkgPath, "utf8"))
 
 			const dependencies = {
 				...pkg["devDependencies"],
