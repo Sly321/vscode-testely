@@ -13,7 +13,7 @@ suite('TypeScriptGenerator.generate', () => {
 	beforeEach(() => {
 		cleanTestWorkspace()
 	})
-
+	
 	function assertFileExists(path: string) {
 		assert.ok(existsSync(path), `Looking for: ${path}, folder structure was:\n${consoleLogTree(createTree(TEMPORARY_TEST_DIRECTORY))}`)
 	}
@@ -21,6 +21,7 @@ suite('TypeScriptGenerator.generate', () => {
 	suite('one file, one export, no package.json', () => {
 		beforeEach(async () => {
 			await assureDir(join(TEMPORARY_TEST_DIRECTORY, "src"))
+			await assureDir(join(TEMPORARY_TEST_DIRECTORY, ".vscode"))
 			writeFileSync(join(TEMPORARY_TEST_DIRECTORY, "src", "westeros.ts"), "export function jon() { return \"snow\" }")
 		})
 		
@@ -87,6 +88,7 @@ suite('TypeScriptGenerator.generate', () => {
 	suite("one file, deeply nested", () => {
 		beforeEach(async () => {
 			await assureDir(join(TEMPORARY_TEST_DIRECTORY, "src", "components", "buttons", "special"))
+			await assureDir(join(TEMPORARY_TEST_DIRECTORY, ".vscode"))
 			writeFileSync(join(TEMPORARY_TEST_DIRECTORY, "src", "components", "buttons", "special", "westeros.ts"), "export function jon() { return \"snow\" }")
 		})
 
