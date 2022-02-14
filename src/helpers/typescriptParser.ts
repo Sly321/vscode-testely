@@ -1,10 +1,12 @@
 import { parse, resolve } from "path"
-import ts, {
+import {
     createSourceFile,
-    EnumDeclaration, isArrayTypeNode,
+    EnumDeclaration, FunctionDeclaration, ImportDeclaration, isArrayTypeNode,
     isEnumDeclaration, isFunctionDeclaration,
-    isIdentifier, isIntersectionTypeNode,
+    isIdentifier, isImportClause, isImportDeclaration, isIntersectionTypeNode,
+    isNamedImports,
     isPropertySignature,
+    isStringLiteral,
     isTypeAliasDeclaration,
     isTypeLiteralNode,
     isTypeReferenceNode,
@@ -15,7 +17,7 @@ import ts, {
     TypeLiteralNode,
     VariableStatement
 } from "typescript"
-import vscode, { TextDocument } from "vscode"
+import { TextDocument, workspace } from "vscode"
 import { findNodeModules, getExtension } from "./fs-ultra"
 
 export type ParsedStatement = {
@@ -54,19 +56,19 @@ export class TypeScriptSource {
         }
     }
 
-    public addFunction(statement: ts.FunctionDeclaration) {
+    public addFunction(statement: FunctionDeclaration) {
         if (hasExportedModifier(statement) && statement.name?.text) {
             this.exportedDeclarations.push({ name: statement.name.text, type: SyntaxKind.FunctionDeclaration })
         }
     }
 
-    public addImport(statement: ts.ImportDeclaration) {
+    public addImport(statement: ImportDeclaration) {
         console.log(statement)
         if (statement.importClause) {
-            if (ts.isImportClause(statement.importClause)) {
-                const from = ts.isStringLiteral(statement.moduleSpecifier) ? statement.moduleSpecifier.text : ""
+            if (isImportClause(statement.importClause)) {
+                const from = isStringLiteral(statement.moduleSpecifier) ? statement.moduleSpecifier.text : ""
 
-                if (statement.importClause.namedBindings && ts.isNamedImports(statement.importClause.namedBindings)) {
+                if (statement.importClause.namedBindings && isNamedImports(statement.importClause.namedBindings)) {
                     statement.importClause.namedBindings.elements.forEach((imp) => {
                         this.imports.push({
                             name: imp.name.text,
@@ -116,7 +118,7 @@ export class TypeScriptParser {
                 source.addVariable(statement)
             } else if (isEnumDeclaration(statement)) {
                 source.addEnum(statement)
-            } else if (ts.isImportDeclaration(statement)) {
+            } else if (isImportDeclaration(statement)) {
                 source.addImport(statement)
             } else {
                 // console.log("Unkown type: " + statement.kind)
@@ -152,7 +154,7 @@ export class TypeScriptParser {
         const source = new TypeScriptSource()
 
         for (const statement of file.statements) {
-            if (ts.isImportDeclaration(statement)) {
+            if (isImportDeclaration(statement)) {
                 source.addImport(statement)
             }
         }
@@ -179,7 +181,7 @@ export class TypeScriptParser {
 
                                 if (ext !== null) {
 
-                                    const nestedDocument = await vscode.workspace.openTextDocument(`${resolved}${ext}`)
+                                    const nestedDocument = await workspace.openTextDocument(`${resolved}${ext}`)
                                     const nestedResolvedFields = await TypeScriptParser.getResolvedTypeField(nestedDocument, childTypeName)
                                     
                                     properties = {
@@ -270,7 +272,7 @@ export class TypeScriptParser {
             
             try {
                 if (ext !== null) {
-                    return await vscode.workspace.openTextDocument(`${resolved}${ext}`)
+                    return await workspace.openTextDocument(`${resolved}${ext}`)
                 }
             } catch {}
         } else {

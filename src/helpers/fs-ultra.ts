@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, statSync } from "fs";
 import { mkdir, readdir, stat } from "fs/promises";
 import { join, parse, sep } from "path";
-import vscode from "vscode";
+import * as vscode from "vscode";
 
 /**
  * returns the extension of a file path without an extension.
