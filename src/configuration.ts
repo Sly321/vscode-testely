@@ -4,13 +4,15 @@ export const EXTENSION_CONFIG_KEY = "testely"
 
 export enum ConfigurationKeys {
     testLocation = "testLocation",
-    testDirectoryName = "testDirectoryName"
+    testDirectoryName = "testDirectoryName",
+    experimentalMockData = "experimentalMockData"
 }
 
 export class Configuration {
     private configs = {
         testLocation: new SingletonConfigValue<TestLocation>(ConfigurationKeys.testLocation),
         testDirectoryName: new SingletonConfigValue<TestLocation>(ConfigurationKeys.testDirectoryName),
+        experimentalMockData: new SingletonConfigValue<boolean>(ConfigurationKeys.experimentalMockData),
     }
 
     constructor() {
@@ -29,6 +31,10 @@ export class Configuration {
 
     public getTestDirectoryName(): string {
         return this.configs.testDirectoryName.get()
+    }
+
+    public getExperimentalMockData(): boolean {
+        return this.configs.experimentalMockData.get()
     }
 }
 

@@ -46,6 +46,11 @@
         "title": "Open Source",
         "category": "Testely",
         "icon": "$(test-view-icon)"
+      },
+      {
+        "command": "testely.createMockData",
+        "title": "Create Mock Data",
+        "category": "Testely"
       }
     ],
     "menus": {
@@ -84,6 +89,11 @@
           "when": "resourceLangId in testely.supportedLangIds && resourceFilename =~ /^.+(.test.(\\w+))$/g",
           "group": "navigation"
         }
+      ],
+      "editor/context": [
+        {
+          "command": "testely.testCommand"
+        }
       ]
     },
     "keybindings": [
@@ -117,6 +127,11 @@
           "type": "string",
           "markdownDescription": "Specifies the name of the test directory. Is only used when `#testely.testLocation#` is set to `same directory (nested)`.",
           "default": "__tests__"
+        },
+        "testely.experimentalMockData": {
+          "type": "boolean",
+          "markdownDescription": "Activates the experimental mock data generation feature (Reload required).",
+          "default": false
         }
       }
     }

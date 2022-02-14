@@ -1,5 +1,5 @@
 import { existsSync } from "fs"
-import { writeFile } from "fs/promises"
+import { readFile, writeFile } from "fs/promises"
 import * as vscode from "vscode"
 import { assureDir } from "../helpers/fs-ultra"
 import { ProjectMeta } from "../helpers/ProjectMeta"
@@ -44,5 +44,10 @@ export abstract class FileWriter<T extends ProjectMeta> {
 
     async write(): Promise<void> {
         return await writeFile(this.file.getPath(), this.generateContent(), { encoding: "utf8" })
+    }
+
+    async append(): Promise<void> {
+        const content = await readFile(this.file.getPath(), { encoding: "utf-8" })
+        return await writeFile(this.file.getPath(), `${content}\n${this.generateContent()}`, { encoding: "utf8" })
     }
 }
