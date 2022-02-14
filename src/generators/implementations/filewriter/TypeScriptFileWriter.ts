@@ -1,6 +1,7 @@
 import { join, parse, relative, resolve, sep } from "path"
 import { TextDocument } from "vscode"
 import { TypeScriptSourceImport } from "../../../helpers/typescriptParser"
+import { File } from "../../File"
 import { FileWriter } from "../../Generator"
 
 export type TypeScriptImport = {
@@ -15,17 +16,17 @@ export abstract class TypeScriptFileWriter<T> extends FileWriter<T> {
     private imports: Array<TypeScriptImport> = []
     private content: Array<string> = []
 
-    constructor(filePath: string, private source: TextDocument) {
-        super(filePath)
+    constructor(file: File, private source: TextDocument) {
+        super(file)
         const { dir: sourceFileDir, name: sourceFileName } = parse(source.uri.fsPath)
-        this.importPath = join(relative(this.parsedFilePath.dir, sourceFileDir), sourceFileName).split(sep).join("/")
+        this.importPath = join(relative(this.file.getDirectory(), sourceFileDir), sourceFileName).split(sep).join("/")
     }
 
     private getRelativeImportPath(path: string) {
         const { dir: sourceFileDir } = parse(this.source.uri.fsPath)
         const importFile = resolve(sourceFileDir, path)
         const { name: importFileName, dir: importFileDir } = parse(importFile)
-        return join(relative(this.parsedFilePath.dir, importFileDir), importFileName).split(sep).join("/")
+        return join(relative(this.file.getDirectory(), importFileDir), importFileName).split(sep).join("/")
     }
 
 	protected parseImport(imp: TypeScriptSourceImport): TypeScriptImport {
