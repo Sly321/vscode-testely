@@ -9,7 +9,7 @@ import { assureDir } from '../../helpers/fs-ultra';
 import { cleanTestWorkspace, consoleLogTree, createTree, openFile, TEMPORARY_TEST_DIRECTORY } from '../utils';
 
 
-suite('TypeScriptGenerator.generate', () => {
+suite.skip('TypeScriptGenerator.generate', () => {
 	beforeEach(() => {
 		cleanTestWorkspace()
 	})
