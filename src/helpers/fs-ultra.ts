@@ -48,7 +48,7 @@ export async function assureDir(path: string) {
 			throw new Error(`Path is not a folder. Stop messing around. (${path})`);
 		}
 	} else {
-		await mkdir(path);
+		await mkdir(path, { recursive: true });
 	}
 }
 
@@ -122,7 +122,7 @@ export function findNodeModules(startPath: string): string | null {
 
 export function getRootWorkspaceFolder(uri: vscode.Uri) {
 	const root = vscode.workspace.getWorkspaceFolder(uri);
-	
+
 	if (!root) {
 		throw new Error("Wasn't able to find a workspace to your file. What the actual F.");
 	}
@@ -132,10 +132,10 @@ export function getRootWorkspaceFolder(uri: vscode.Uri) {
 
 export function getRootSourceFolder(uri: vscode.Uri) {
 	const root = vscode.workspace.getWorkspaceFolder(uri);
-	
+
 	if (!root) {
 		throw new Error("Wasn't able to find a workspace to your file. What the actual F.");
 	}
-	
+
 	return join(root?.uri.fsPath, "src");
 }

@@ -5,6 +5,7 @@ import { getNearest } from "../../helpers/fs-ultra"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
 import { ParsedStatement, TypeScriptParser, TypeScriptSource } from "../../helpers/typescriptParser"
 import { FileWriter, Generator, GeneratorError } from "../Generator"
+import { File } from "../File"
 
 export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
     async getProjectMeta(): Promise<FrontendProjectMeta> {
@@ -44,8 +45,8 @@ export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
         }
     }
 
-    override getFileWriter(filePath: string) {
-        return new TypeScriptFileWriter(filePath, this.document)
+    override getFileWriter(file: File) {
+        return new TypeScriptFileWriter(file, this.document)
     }
 }
 
@@ -62,23 +63,21 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
     private imports: Array<TypeScriptImport> = []
     private content: Array<string> = []
 
-    constructor(testFilePath: string, private source: vscode.TextDocument) {
-        super(testFilePath)
+    constructor(file: File, private source: vscode.TextDocument) {
+        super(file)
 
         this.parsedSource = TypeScriptParser.getExportedStatements(this.source.getText())
         const { dir: sourceFileDir, name: sourceFileName } = parse(source.uri.fsPath)
-        const { dir: testFileDir } = parse(testFilePath)
 
-        this.importPath = join(relative(testFileDir, sourceFileDir), sourceFileName).split(sep).join("/")
+        this.importPath = join(relative(file.getDirectory(), sourceFileDir), sourceFileName).split(sep).join("/")
     }
 
     private getRelativeImportPath(path: string) {
         const { dir: sourceFileDir } = parse(this.source.uri.fsPath)
-        const { dir: testFileDir } = this.parsedFilePath
 
         const importFile = resolve(sourceFileDir, path)
         const { name: importFileName, dir: importFileDir } = parse(importFile)
-        return join(relative(testFileDir, importFileDir), importFileName).split(sep).join("/")
+        return join(relative(this.file.getDirectory(), importFileDir), importFileName).split(sep).join("/")
     }
 
     async prepare(projectMeta: FrontendProjectMeta): Promise<void> {

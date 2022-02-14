@@ -3,6 +3,7 @@ import { parse, resolve } from "path";
 import * as vscode from "vscode";
 import { createTestCommand, showDocument } from "./commands/createTest";
 import { configuration } from "./configuration";
+import { File } from "./generators/File";
 import { TypeScriptMockFileWriter } from "./generators/implementations/filewriter/TypeScriptMockFileWriter";
 import { assureDir } from "./helpers/fs-ultra";
 import { TypeScriptParser } from "./helpers/typescriptParser";
@@ -76,26 +77,24 @@ export function activate(context: vscode.ExtensionContext) {
         const mockDataCreator = vscode.commands.registerCommand("testely.createMockData", async function(this: any, document: vscode.TextDocument, keyword: string) {
             const [properties, imports] = await TypeScriptParser.getResolvedTypeField(document, keyword)
             const { base, dir } = parse(document.fileName)
-            const filePath = resolve(dir, "..", "data", "__mocks__", `mock${capitalize(base)}`);
-            const file = parse(filePath)
+            const file = new File(resolve(dir, "..", "data", "__mocks__", `mock${capitalize(base)}`))
             
-            let exists = false
-            assureDir(file.dir)
+            assureDir(file.getDirectory())
             
-            if (existsSync(filePath)) {
-                exists = true
+            if (existsSync(file.getPath())) {
+                file.setExist(true)
             }
             
-            const writer = new TypeScriptMockFileWriter(filePath, document)
+            const writer = new TypeScriptMockFileWriter(file, document)
             await writer.prepare({ properties, imports, keyword })
             
-            if (exists) {
+            if (file.exists()) {
                 await writer.append()
             } else {
                 await writer.write()
             }
             
-            showDocument(filePath)
+            showDocument(file.getPath())
         })
 
         context.subscriptions.push(mockDataCreator)
