@@ -1,7 +1,22 @@
-import { existsSync } from "fs";
+import { existsSync, readdirSync, statSync } from "fs";
 import { mkdir, readdir, stat } from "fs/promises";
 import { join, parse, sep } from "path";
-import * as vscode from "vscode";
+import vscode from "vscode";
+
+/**
+ * returns the extension of a file path without an extension.
+ */
+export async function getExtension(path: string) {
+	try {
+		const resTs = await stat(`${path}.ts`);
+		return ".ts"
+	} catch {}
+	try {
+		const resTsx = await stat(`${path}.tsx`);
+		return ".tsx"
+	} catch {}
+	return null
+}
 
 export async function isFolder(path: string) {
 	const res = await stat(path);
@@ -61,6 +76,49 @@ export async function getNearest(fileName: string, from: string): Promise<string
 	const lower = from.slice(0, index);
 	return getNearest(fileName, lower);
 }
+
+function isSystemRootDirectoy(path: string): boolean {
+	return path.split(sep).length === 2 || path.lastIndexOf(sep) === 0
+}
+
+export function findPackageJson(startPath: string): string | null {
+	const fileOrDirectoryStatus = statSync(startPath);
+
+	if (fileOrDirectoryStatus.isDirectory()) {
+		const dir = readdirSync(startPath);
+
+		if (dir.includes("package.json")) {
+			return join(startPath, "package.json");
+		}
+	}
+
+	if (isSystemRootDirectoy(startPath)) {
+		return null;
+	}
+
+	const lower = startPath.slice(0, startPath.lastIndexOf(sep));
+	return findPackageJson(lower);
+}
+
+export function findNodeModules(startPath: string): string | null {
+	const fileOrDirectoryStatus = statSync(startPath);
+
+	if (fileOrDirectoryStatus.isDirectory()) {
+		const dir = readdirSync(startPath);
+
+		if (dir.includes("node_modules")) {
+			return join(startPath, "node_modules");
+		}
+	}
+
+	if (isSystemRootDirectoy(startPath)) {
+		return null;
+	}
+
+	const lower = startPath.slice(0, startPath.lastIndexOf(sep));
+	return findPackageJson(lower);
+}
+
 
 export function getRootWorkspaceFolder(uri: vscode.Uri) {
 	const root = vscode.workspace.getWorkspaceFolder(uri);

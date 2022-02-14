@@ -1,11 +1,18 @@
 import { ConfigurationChangeEvent, workspace } from "vscode"
 
-const configKey = "testely"
+export const EXTENSION_CONFIG_KEY = "testely"
+
+export enum ConfigurationKeys {
+    testLocation = "testLocation",
+    testDirectoryName = "testDirectoryName",
+    experimentalMockData = "experimentalMockData"
+}
 
 export class Configuration {
     private configs = {
-        testLocation: new SingletonConfigValue<TestLocation>("testLocation"),
-        testDirectoryName: new SingletonConfigValue<TestLocation>("testDirectoryName"),
+        testLocation: new SingletonConfigValue<TestLocation>(ConfigurationKeys.testLocation),
+        testDirectoryName: new SingletonConfigValue<TestLocation>(ConfigurationKeys.testDirectoryName),
+        experimentalMockData: new SingletonConfigValue<boolean>(ConfigurationKeys.experimentalMockData),
     }
 
     constructor() {
@@ -13,7 +20,7 @@ export class Configuration {
     }
 
     private onConfigChange(event: ConfigurationChangeEvent) {
-        if (event.affectsConfiguration(configKey)) {
+        if (event.affectsConfiguration(EXTENSION_CONFIG_KEY)) {
             Object.values(this.configs).forEach((config) => config.renew())
         }
     }
@@ -24,6 +31,10 @@ export class Configuration {
 
     public getTestDirectoryName(): string {
         return this.configs.testDirectoryName.get()
+    }
+
+    public getExperimentalMockData(): boolean {
+        return this.configs.experimentalMockData.get()
     }
 }
 
@@ -42,7 +53,7 @@ class SingletonConfigValue<T> {
     }
 
     private getConfigValue(): T | undefined {
-        return workspace.getConfiguration(configKey).get<T>(this.key)
+        return workspace.getConfiguration(EXTENSION_CONFIG_KEY).get<T>(this.key)
     }
 
     public renew() {
@@ -54,7 +65,7 @@ class SingletonConfigValue<T> {
     }
 
     public getKey(): string {
-        return `${configKey}.${this.key}`
+        return `${EXTENSION_CONFIG_KEY}.${this.key}`
     }
 }
 

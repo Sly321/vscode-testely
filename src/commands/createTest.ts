@@ -74,7 +74,7 @@ async function openSourceFile(testDocument: vscode.TextDocument) {
     }
 }
 
-async function showDocument(filePath: string) {
+export async function showDocument(filePath: string) {
     const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath))
     await vscode.window.showTextDocument(doc, 1, false)
 }

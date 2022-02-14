@@ -1,28 +1,41 @@
-import {
+import { parse, resolve } from "path"
+import ts, {
     createSourceFile,
-    EnumDeclaration,
-    isEnumDeclaration,
-    isFunctionDeclaration,
-    isIdentifier,
+    EnumDeclaration, isArrayTypeNode,
+    isEnumDeclaration, isFunctionDeclaration,
+    isIdentifier, isIntersectionTypeNode,
+    isPropertySignature,
+    isTypeAliasDeclaration,
+    isTypeLiteralNode,
+    isTypeReferenceNode,
     isVariableStatement,
     ScriptTarget,
     Statement,
     SyntaxKind,
-    VariableStatement,
+    TypeLiteralNode,
+    VariableStatement
 } from "typescript"
-import ts = require("typescript")
+import vscode, { TextDocument } from "vscode"
+import { findNodeModules, getExtension } from "./fs-ultra"
 
 export type ParsedStatement = {
     name: string
-    type: SyntaxKind.FunctionDeclaration | SyntaxKind.VariableStatement | SyntaxKind.EnumDeclaration
+    type: SyntaxKind.FunctionDeclaration | SyntaxKind.VariableStatement | SyntaxKind.EnumDeclaration | SyntaxKind.TypeAliasDeclaration
 }
 
 function hasExportedModifier(statement: Statement) {
     return !!statement.modifiers?.some((modifier) => modifier.kind === SyntaxKind.ExportKeyword)
 }
 
+export type TypeScriptSourceImport = {
+    name: string
+    from: string
+    default?: boolean
+    named?: boolean
+}
+
 export class TypeScriptSource {
-    private imports: Array<any> = []
+    private imports: Array<TypeScriptSourceImport> = []
     private exportedDeclarations: Array<ParsedStatement> = []
 
     public addEnum(statement: EnumDeclaration) {
@@ -83,12 +96,19 @@ export class TypeScriptSource {
     }
 }
 
+export type TypeScriptProperty = {
+    type: SyntaxKind
+    name?: string
+    of?: TypeScriptProperty
+}
+export type TypeScriptPropertiesDeclaration = Record<string, TypeScriptProperty>
+
 export class TypeScriptParser {
     static getExportedStatements(sourceText: string) {
         const file = createSourceFile("e", sourceText, ScriptTarget.ESNext)
 
         const source = new TypeScriptSource()
-
+        
         file.statements.forEach((statement) => {
             if (isFunctionDeclaration(statement)) {
                 source.addFunction(statement)
@@ -102,7 +122,162 @@ export class TypeScriptParser {
                 // console.log("Unkown type: " + statement.kind)
             }
         })
-
+        
         return source
+    }
+    
+    static isTypeStatement(document: TextDocument, keyword: string) {
+        const { name } = parse(document.fileName)
+        const file = createSourceFile(name, document.getText(), ScriptTarget.ESNext, true)
+
+        let result = false
+
+        for (let statement of file.statements) {
+            if (isTypeAliasDeclaration(statement) && statement.name.escapedText === keyword) {
+                result = true
+            }
+            
+            if (result === true) {
+                break
+            }
+        }
+
+        return result
+    }
+
+    static async getResolvedTypeField(document: TextDocument, keyword: string): Promise<[TypeScriptPropertiesDeclaration, Array<ParsedStatement>]> {
+        const { name, dir} = parse(document.fileName)
+        const file = createSourceFile(name, document.getText(), ScriptTarget.ESNext, true)
+
+        const source = new TypeScriptSource()
+
+        for (const statement of file.statements) {
+            if (ts.isImportDeclaration(statement)) {
+                source.addImport(statement)
+            }
+        }
+
+        let properties: TypeScriptPropertiesDeclaration = {}
+        const imports: Array<ParsedStatement> = []
+
+        for (const statement of file.statements) {
+            if (isTypeAliasDeclaration(statement) && statement.name.escapedText === keyword) {
+                const { type } = statement
+
+                if (hasExportedModifier(statement) && statement.name?.text) {
+                    imports.push({ name: statement.name.text, type: SyntaxKind.TypeAliasDeclaration })
+                }
+
+                if (isIntersectionTypeNode(type)) {
+                    for (const childType of type.types) {
+                        if (isTypeReferenceNode(childType)) {
+                            const childTypeName = childType.getFullText().trim()
+                            const childTypeImport = source.getImports().find(sImport => sImport.name === childTypeName)
+                            if (childTypeImport) {
+                                const resolved = resolve(dir, childTypeImport?.from)
+                                const ext = await getExtension(resolved)
+
+                                if (ext !== null) {
+
+                                    const nestedDocument = await vscode.workspace.openTextDocument(`${resolved}${ext}`)
+                                    const nestedResolvedFields = await TypeScriptParser.getResolvedTypeField(nestedDocument, childTypeName)
+                                    
+                                    properties = {
+                                        ...nestedResolvedFields[0],
+                                        ...properties
+                                    }
+                                }
+                            }
+                        } else if (isTypeLiteralNode(childType)) {
+                            properties = {
+                                ...properties,
+                                ...(await this.handleTypeLiteralNode(childType, source, document))
+                            }
+                        } else {
+                            console.error(`unknown type in intersection type ${childType.kind}`)
+                        }
+                    }
+                } else if (isTypeLiteralNode(type)) {
+                    if (isTypeReferenceNode(type)) {
+                            
+                    } else {
+                        properties = {
+                            ...properties,
+                            ...(await this.handleTypeLiteralNode(type, source, document))
+                        }
+                    }
+                } else {
+                    console.error(`unknown type ${type.kind}`)
+                }
+            }
+        }
+
+        return [properties, imports]
+    }
+
+    private static async handleTypeLiteralNode(type: TypeLiteralNode, source: TypeScriptSource, doc: TextDocument): Promise<TypeScriptPropertiesDeclaration> {
+
+        let properties: TypeScriptPropertiesDeclaration = {}
+
+        for (const member of type.members) {
+            if (isPropertySignature(member)) {
+                const memberName = member.name.getFullText().trim()
+
+                if (member.type) {
+                    if (isArrayTypeNode(member.type)) {
+                        properties[memberName] = {
+                            type: member.type?.kind,
+                            // of: member.type.elementType
+                            of: { type: SyntaxKind.Unknown }
+                        }
+                    } else if (isTypeReferenceNode(member.type)) {
+                        const typeName = member.type.typeName.getFullText().trim()
+                        const childTypeImport = source.getImports().find(sImport => sImport.name === typeName)
+                        if (childTypeImport) {
+                            const file = await this.resolveImport(childTypeImport, doc)
+
+                            if (file) {
+                                const res = await this.getResolvedTypeField(file, typeName)
+                                console.log(res)
+                            } else {
+                                properties[memberName] = {
+                                    type: SyntaxKind.Unknown,
+                                    name: typeName
+                                }
+                            }
+                        }
+                    } else {
+                        properties[memberName] = {
+                            type: member.type?.kind || SyntaxKind.Unknown
+                        }
+                    }
+                }
+            } else {
+                console.error(`unknown type literal member type ${member.kind}`)
+            }
+        }
+        return properties
+    }
+
+    private  static async resolveImport(typeImport: TypeScriptSourceImport, doc: TextDocument): Promise<TextDocument | null> {
+        const isRelativeImport = typeImport.from.startsWith(".")
+
+        if (isRelativeImport) {
+
+            const { dir } = parse(doc.fileName)
+            const resolved = resolve(dir, typeImport?.from)
+            const ext = await getExtension(resolved)
+            
+            try {
+                if (ext !== null) {
+                    return await vscode.workspace.openTextDocument(`${resolved}${ext}`)
+                }
+            } catch {}
+        } else {
+            const nodeFolder = findNodeModules(doc.fileName)
+
+        }
+            
+        return null
     }
 }

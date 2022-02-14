@@ -1,5 +1,5 @@
-import { existsSync, FSWatcher, mkdirSync } from "fs"
-import { writeFile } from "fs/promises"
+import { existsSync, mkdirSync } from "fs"
+import { readFile, writeFile } from "fs/promises"
 import { join, parse, ParsedPath, sep } from "path"
 import * as vscode from "vscode"
 import { configuration, TestLocation } from "../configuration"
@@ -103,5 +103,10 @@ export abstract class FileWriter<T extends ProjectMeta> {
 
     async write(): Promise<void> {
         return await writeFile(this.filePath, this.generateContent(), { encoding: "utf8" })
+    }
+
+    async append(): Promise<void> {
+        const content = await readFile(this.filePath, { encoding: "utf-8" })
+        return await writeFile(this.filePath, `${content}\n${this.generateContent()}`, { encoding: "utf8" })
     }
 }
