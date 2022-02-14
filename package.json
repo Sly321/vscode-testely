@@ -90,11 +90,7 @@
           "group": "navigation"
         }
       ],
-      "editor/context": [
-        {
-          "command": "testely.testCommand"
-        }
-      ]
+      "editor/context": []
     },
     "keybindings": [
       {
