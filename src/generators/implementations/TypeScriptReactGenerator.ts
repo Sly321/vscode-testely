@@ -1,5 +1,6 @@
 import { TextDocument } from "vscode"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
+import { ParsedStatement } from "../../helpers/typescriptParser"
 import { File } from "../File"
 import { TypeScriptFileWriter, TypeScriptGenerator } from "./TypeScriptGenerator"
 
@@ -17,29 +18,46 @@ export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
         const exports = await this.getExports()
         this.addImport({ named: exports.map((exp) => exp.name), from: `${this.importPath}` })
 
-        if (projectMeta["@testing-library/react"]) {
-            this.addImport({ from: "@testing-library/react", named: ["screen, render"] })
-        }
-
         exports.forEach((exp) => {
             if (projectMeta.jest) {
                 if (projectMeta["@testing-library/react"]) {
-                    if (exp.name.startsWith("use")) {
-                        this.addContent(
-                            `describe("${exp.name}", () => {`,
-                            ``,
-                            `    function UseHook() {`,
-                            `        const { data } = ${exp.name}()`,
-                            `        return <div data-testid="result">{JSON.stringify(data)}</div>`,
-                            `    }`,
-                            ``,
-                            `    it("should ...", () => {`,
-                            `        render(<UseHook />)`,
-                            `        expect(screen.getByTestId("result").innerHTML).toEqual("{}")`,
-                            `    })`,
-                            `})`,
-                            ``
-                        )
+                    if (this.isReactHook(exp)) {
+                        if (projectMeta["@testing-library/react-hooks"]) {
+                            this.addImport({ from: "react", named: ["ReactNode"] })
+                            this.addImport({ from: "@testing-library/react-hooks", named: ["renderHook"] })
+
+                            this.addContent(
+                                `describe("${exp.name}", () => {`,
+                                ``,
+                                `    function wrapper({}: { children: ReactNode }) {`,
+                                `        return <SomeProvider>{children}</SomeProvider>`,
+                                `    }`,
+                                ``,
+                                `    it("should ...", () => {`,
+                                `        const { result } = renderHook(() => ${exp.name}, { wrapper })`,
+                                `        expect(result.current).toEqual("{}")`,
+                                `    })`,
+                                `})`,
+                                ``
+                            )
+                        } else if (projectMeta["@testing-library/react"]) {
+                            this.addImport({ from: "@testing-library/react", named: ["screen, render"] })
+                            this.addContent(
+                                `describe("${exp.name}", () => {`,
+                                ``,
+                                `    function UseHook() {`,
+                                `        const { data } = ${exp.name}()`,
+                                `        return <div data-testid="result">{JSON.stringify(data)}</div>`,
+                                `    }`,
+                                ``,
+                                `    it("should ...", () => {`,
+                                `        render(<UseHook />)`,
+                                `        expect(screen.getByTestId("result").innerHTML).toEqual("{}")`,
+                                `    })`,
+                                `})`,
+                                ``
+                            )
+                        }
                     } else {
                         this.addContent(
                             `describe("<${exp.name} />", () => {`,
@@ -56,5 +74,9 @@ export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
                 }
             }
         })
+    }
+
+    isReactHook(statement: ParsedStatement) {
+        return statement.name.startsWith("use")
     }
 }

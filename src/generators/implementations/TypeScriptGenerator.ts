@@ -17,6 +17,7 @@ export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
         if (pkgPath === null) {
             return {
                 "@testing-library/react": false,
+                "@testing-library/react-hooks": false,
                 react: false,
                 jest: false,
                 mocha: false,
@@ -26,13 +27,14 @@ export class TypeScriptGenerator extends Generator<FrontendProjectMeta> {
 
         try {
             const pkg = JSON.parse(await readFile(pkgPath, "utf8"))
-
+            
             const dependencies = {
                 ...pkg["devDependencies"],
                 ...pkg["dependencies"],
             }
 
             return {
+                "@testing-library/react-hooks": !!dependencies["@testing-library/react-hooks"],
                 "@testing-library/react": !!dependencies["@testing-library/react"],
                 react: !!dependencies["react"] || !!dependencies["react-scripts"],
                 jest: !!dependencies["jest"] || !!dependencies["react-scripts"],
@@ -119,6 +121,8 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
 
                     this.addContent(
                         `describe("${exp.name}", () => {`,
+                        `    mockInitLocalePartially(mockLocale)`,
+                        ``,
                         `    Object.values(${enumIdentifier}).forEach((value) => {`,
                         `        it(\`should translate \${value}\`, () => {`,
                         `            const translation = ${exp.name}(value)`,
@@ -138,8 +142,13 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
         return [`describe("${fnName}", () => {`, `    it("should ...", () => {`, `        expect(${fnName}()).toEqual(null)`, `    })`, `})`, ``]
     }
 
-    protected addImport(...imp: Array<TypeScriptImport>): void {
-        this.imports.push(...imp)
+    protected addImport(...imps: Array<TypeScriptImport>): void {
+        for (const imp of imps) {
+            // at some point i need to check the inner value if it contains the from
+            if (!this.imports.find(value => value.from === imp.from)) {
+                this.imports.push(imp)
+            }
+        }
     }
 
     protected addContent(...content: Array<string>): void {

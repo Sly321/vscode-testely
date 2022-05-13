@@ -1,8 +1,6 @@
 import { join, parse, resolve, sep } from "path"
 import * as vscode from "vscode"
-import { resourceLimits } from "worker_threads"
 import { configuration, TestLocation } from "../configuration"
-import { GeneratorError } from "../generators/Generator"
 import { getGeneratorByLanguageId } from "../generators/getGeneratorByLanguageId"
 import { getRootWorkspaceFolder, isTestFile, removeTestFromFileName } from "../helpers/fs-ultra"
 

@@ -7,6 +7,7 @@ export interface FrontendProjectMeta extends ProjectMeta {
     mocha: boolean
     i18next: boolean
     ["@testing-library/react"]: boolean
+    ["@testing-library/react-hooks"]: boolean
 }
 
 // class ProjectMetaProvider {
