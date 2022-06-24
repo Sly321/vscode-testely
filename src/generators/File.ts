@@ -5,12 +5,14 @@ export class File {
     private dir: string;
     private fileExists: boolean = false;
     private baseName: string;
+    private content: string
 
     constructor(path: string) {
         const { dir, base } = parse(path);
         this.path = path;
         this.dir = dir;
         this.baseName = base;
+        this.content = ""
     }
 
     public setExist(value: boolean) {
@@ -33,5 +35,13 @@ export class File {
 
     public getPath(): string {
         return this.path;
+    }
+
+    public setContent(content: string): void {
+        this.content = content
+    }
+
+    public getContent(): string {
+        return this.content
     }
 }

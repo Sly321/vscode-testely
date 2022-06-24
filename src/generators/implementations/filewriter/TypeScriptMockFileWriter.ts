@@ -57,7 +57,7 @@ export class TypeScriptMockFileWriter extends TypeScriptFileWriter<MockFileWrite
 
 	private unknownProperty(prop: TypeScriptProperty) {
 		if (prop.name === "DateString") {
-			return `"03-12-2020"`
+			return `"2020-01-01"`
 		}
 		
 		return `"unknown ${prop.name}"`
@@ -65,5 +65,60 @@ export class TypeScriptMockFileWriter extends TypeScriptFileWriter<MockFileWrite
 
 	private arrayProperty(prop: TypeScriptProperty): string {
 		return `[${this.getPropertyValue(prop.of)}]`
+	}
+}
+
+// WIP
+class TypeScriptMockProperty {
+	constructor(private property: TypeScriptProperty, private key: string) {}
+
+	private getValue() {
+		if (!this.property) {
+			return ""
+		}
+
+		switch(this.property.type) {
+			case SyntaxKind.Unknown:
+				return this.unknownProperty()
+			case SyntaxKind.StringKeyword:
+				return this.stringProperty()
+			case SyntaxKind.BooleanKeyword:
+				return this.booleanProperty()
+			case SyntaxKind.NumberKeyword:
+				return this.numberProperty()
+			case SyntaxKind.ArrayType:
+				return this.arrayProperty()
+			default:
+				console.error(`missing implementation for ${this.property.type}`)
+				return `"??? ${this.property.type} ???"`
+		}
+	}
+
+	private stringProperty() {
+		return `"string value"`
+	}
+
+	private booleanProperty() {
+		return `false`
+	}
+
+	private numberProperty() {
+		return `1`
+	}
+
+	private unknownProperty() {
+		if (this.property.name === "DateString") {
+			return `"2020-01-01"`
+		}
+		
+		return `"unknown ${this.property.name}"`
+	}
+
+	private arrayProperty(): string {
+		return `[]`
+	}
+
+	toString() {
+
 	}
 }

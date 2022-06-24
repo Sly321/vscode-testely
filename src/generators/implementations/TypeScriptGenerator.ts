@@ -119,6 +119,8 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
                         }
                     })
 
+                    imports.push({ from: "i18next", name: "i18next", default: true })
+                    
                     this.addContent(
                         `describe("${exp.name}", () => {`,
                         `    mockInitLocalePartially(mockLocale)`,
@@ -126,7 +128,7 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
                         `    Object.values(${enumIdentifier}).forEach((value) => {`,
                         `        it(\`should translate \${value}\`, () => {`,
                         `            const translation = ${exp.name}(value)`,
-                        `            expect(translation).toEqual(i18n.t(\`.\${value}\`))`,
+                        `            expect(translation).toEqual(i18next.t(\`.\${value}\`))`,
                         `        })`,
                         `    })`,
                         `})`

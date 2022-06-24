@@ -53,7 +53,7 @@ export class TestfileFactory {
     private static async createRootTestFolderNestedPath() {
         const root = getRootWorkspaceFolder(vscode.Uri.file(this.sourceFile.getPath()))
 
-        const testFolder = join(root, "test")
+        const testFolder = join(root, configuration.getTestDirectoryName() || "test")
         const fileName = addTestToFileName(this.sourceFile.getPath().replace(root, "").split(sep).slice(2).join(sep))
         const testFile = join(testFolder, fileName)
 

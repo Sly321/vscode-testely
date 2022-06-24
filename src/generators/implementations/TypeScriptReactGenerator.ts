@@ -29,12 +29,12 @@ export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
                             this.addContent(
                                 `describe("${exp.name}", () => {`,
                                 ``,
-                                `    function wrapper({}: { children: ReactNode }) {`,
+                                `    function wrapper({ children }: { children: ReactNode }) {`,
                                 `        return <SomeProvider>{children}</SomeProvider>`,
                                 `    }`,
                                 ``,
                                 `    it("should ...", () => {`,
-                                `        const { result } = renderHook(() => ${exp.name}, { wrapper })`,
+                                `        const { result } = renderHook(() => ${exp.name}(), { wrapper })`,
                                 `        expect(result.current).toEqual("{}")`,
                                 `    })`,
                                 `})`,
@@ -59,6 +59,7 @@ export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
                             )
                         }
                     } else {
+                        this.addImport({ from: "@testing-library/react", named: ["screen, render"] })
                         this.addContent(
                             `describe("<${exp.name} />", () => {`,
                             `    it("should ...", () => {`,

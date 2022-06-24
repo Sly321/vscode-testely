@@ -5,6 +5,7 @@ import { createTestCommand, showDocument } from "./commands/createTest";
 import { configuration } from "./configuration";
 import { File } from "./generators/File";
 import { TypeScriptMockFileWriter } from "./generators/implementations/filewriter/TypeScriptMockFileWriter";
+import { fileFromTextDocument } from "./helpers/fileFromTextDocument";
 import { assureDir } from "./helpers/fs-ultra";
 import { TypeScriptParser } from "./helpers/typescriptParser";
 
@@ -75,7 +76,8 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(vscode.languages.registerCodeActionsProvider(TYPESCRIPT, new CompleteActionProvider()))
 
         const mockDataCreator = vscode.commands.registerCommand("testely.createMockData", async function(this: any, document: vscode.TextDocument, keyword: string) {
-            const [properties, imports] = await TypeScriptParser.getResolvedTypeField(document, keyword)
+            const sourceFile = fileFromTextDocument(document)
+            const [properties, imports] = await TypeScriptParser.getResolvedTypeField(sourceFile, keyword)
             const { base, dir } = parse(document.fileName)
             const file = new File(resolve(dir, "..", "data", "__mocks__", `mock${capitalize(base)}`))
             
