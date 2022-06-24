@@ -1,3 +1,4 @@
+import exp from "constants"
 import { TextDocument } from "vscode"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
 import { ParsedStatement } from "../../helpers/typescriptParser"
@@ -16,7 +17,11 @@ export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
 
     override async prepare(projectMeta: FrontendProjectMeta): Promise<void> {
         const exports = await this.getExports()
-        this.addImport({ named: exports.map((exp) => exp.name), from: `${this.importPath}` })
+
+        if (exports.length > 0) {
+            const defaultExport = exports.find(exp => exp.defaultExport)
+            this.addImport({ named: exports.filter(exp => !exp.defaultExport).map((exp) => exp.name), from: `${this.importPath}`, default: defaultExport?.name  })
+        }
 
         exports.forEach((exp) => {
             if (projectMeta.jest) {

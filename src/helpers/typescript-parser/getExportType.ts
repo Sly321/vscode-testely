@@ -4,6 +4,10 @@ export function hasExportedModifier(statement: Statement) {
     return !!statement.modifiers?.some((modifier) => modifier.kind === SyntaxKind.ExportKeyword)
 }
 
+export function hasDefaultModifier(statement: Statement) {
+    return !!statement.modifiers?.some((modifier) => modifier.kind === SyntaxKind.DefaultKeyword)
+}
+
 // export function getExportType(statement: Statement) {
 // 	console.log("getExportType")
 

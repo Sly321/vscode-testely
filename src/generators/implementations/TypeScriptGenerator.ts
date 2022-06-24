@@ -167,18 +167,21 @@ export class TypeScriptFileWriter extends FileWriter<FrontendProjectMeta> {
      */
     protected async getExports(): Promise<Array<ParsedStatement>> {
         const exportedDeclarations: Array<ParsedStatement> = this.parsedSource.getExportedDeclarations()
-
         let exportsChosenByTheUser: Array<ParsedStatement> = exportedDeclarations
 
         if (exportedDeclarations.length > 1) {
             const results = await vscode.window.showQuickPick(
-                exportedDeclarations.map((exp) => exp.name),
+                exportedDeclarations.map(this.createExportLabel),
                 { canPickMany: true, title: "Choose the exports that the test should cover." }
             )
-            exportsChosenByTheUser = exportedDeclarations.filter((exp) => results?.includes(exp.name))
+            exportsChosenByTheUser = exportedDeclarations.filter((exp) => results?.includes(this.createExportLabel(exp)))
         }
 
         return exportsChosenByTheUser
+    }
+
+    private createExportLabel(statement: ParsedStatement) {
+        return `${statement.name}${statement.defaultExport ? " (Default)" : ""}`
     }
 
     static printImport(imp: TypeScriptImport): string {

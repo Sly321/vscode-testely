@@ -11,20 +11,22 @@ import {
     isTypeLiteralNode,
     isTypeReferenceNode,
     isVariableStatement,
-    ScriptTarget, SyntaxKind,
+    ScriptTarget, Statement, SyntaxKind,
     TypeLiteralNode,
+    VariableDeclaration,
     VariableStatement
 } from "typescript"
 import { TextDocument, workspace } from "vscode"
 import { File } from "../generators/File"
 import { fileFromTextDocument } from "./fileFromTextDocument"
 import { getExtension } from "./fs-ultra"
-import { hasExportedModifier } from "./typescript-parser/getExportType"
+import { hasDefaultModifier, hasExportedModifier } from "./typescript-parser/getExportType"
 import { resolveImport } from "./typescript-parser/resolveImport"
 
 export type ParsedStatement = {
     name: string
     type: SyntaxKind.FunctionDeclaration | SyntaxKind.VariableStatement | SyntaxKind.EnumDeclaration | SyntaxKind.TypeAliasDeclaration
+    defaultExport?: boolean
 }
 
 export type TypeScriptSourceImport = {
@@ -40,7 +42,7 @@ export class TypeScriptSource {
 
     public addEnum(statement: EnumDeclaration) {
         if (hasExportedModifier(statement) && statement.name?.text) {
-            this.exportedDeclarations.push({ name: statement.name.text, type: SyntaxKind.EnumDeclaration })
+            this.exportedDeclarations.push({ name: statement.name.text, type: SyntaxKind.EnumDeclaration, defaultExport: hasDefaultModifier(statement) })
         }
     }
 
@@ -56,12 +58,11 @@ export class TypeScriptSource {
 
     public addFunction(statement: FunctionDeclaration) {
         if (hasExportedModifier(statement) && statement.name?.text) {
-            this.exportedDeclarations.push({ name: statement.name.text, type: SyntaxKind.FunctionDeclaration })
+            this.exportedDeclarations.push({ name: statement.name.text, type: SyntaxKind.FunctionDeclaration, defaultExport: hasDefaultModifier(statement) })
         }
     }
 
     public addImport(statement: ImportDeclaration) {
-        console.log(statement)
         if (statement.importClause) {
             if (isImportClause(statement.importClause)) {
                 const from = isStringLiteral(statement.moduleSpecifier) ? statement.moduleSpecifier.text : ""
