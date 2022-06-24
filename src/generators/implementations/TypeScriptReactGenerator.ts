@@ -1,5 +1,6 @@
 import exp from "constants"
 import { TextDocument } from "vscode"
+import { configuration } from "../../configuration"
 import { FrontendProjectMeta } from "../../helpers/ProjectMeta"
 import { ParsedStatement } from "../../helpers/typescriptParser"
 import { File } from "../File"
@@ -65,11 +66,13 @@ export class TypeScriptReactFileWriter extends TypeScriptFileWriter {
                         }
                     } else {
                         this.addImport({ from: "@testing-library/react", named: ["screen, render"] })
+                        const screenTestfunction = configuration.getTestingLibraryReactScreenTestFunction()
+                        const isAsync = screenTestfunction.includes("await ")
                         this.addContent(
                             `describe("<${exp.name} />", () => {`,
-                            `    it("should ...", () => {`,
+                            `    it("should ...", ${isAsync ? "async " : ""}() => {`,
                             `        render(<${exp.name} />)`,
-                            `        expect(screen.getByTestId("")).toBeInTheDocument()`,
+                            `        expect(${screenTestfunction}).toBeInTheDocument()`,
                             `    })`,
                             `})`,
                             ``

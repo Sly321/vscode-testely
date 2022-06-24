@@ -5,7 +5,8 @@ export const EXTENSION_CONFIG_KEY = "testely"
 export enum ConfigurationKeys {
     testLocation = "testLocation",
     testDirectoryName = "testDirectoryName",
-    experimentalMockData = "experimentalMockData"
+    experimentalMockData = "experimentalMockData",
+    testingLibraryReactScreenTestFunction = "testing-library-react.screen.getFunction"
 }
 
 export class Configuration {
@@ -13,6 +14,7 @@ export class Configuration {
         testLocation: new SingletonConfigValue<TestLocation>(ConfigurationKeys.testLocation),
         testDirectoryName: new SingletonConfigValue<TestLocation>(ConfigurationKeys.testDirectoryName),
         experimentalMockData: new SingletonConfigValue<boolean>(ConfigurationKeys.experimentalMockData),
+        testingLibraryReactScreenTestFunction: new SingletonConfigValue<TestingLibraryReactScreenTestFunction>(ConfigurationKeys.testingLibraryReactScreenTestFunction),
     }
 
     constructor() {
@@ -36,6 +38,17 @@ export class Configuration {
     public getExperimentalMockData(): boolean {
         return this.configs.experimentalMockData.get()
     }
+
+    public getTestingLibraryReactScreenTestFunction(): string {
+        const screenFunction = this.configs.testingLibraryReactScreenTestFunction.get()
+        const hasAll = screenFunction.includes("All")
+        const awaited = screenFunction.startsWith("find")
+
+        const prefix = awaited ? `${hasAll ? "(" : ""}await ` : "" 
+        const suffix = hasAll ? `${awaited ? ")" : ""}[0]` : ""
+
+        return `${prefix}screen.${screenFunction}(\"result\")${suffix}`
+    }
 }
 
 export enum TestLocation {
@@ -43,6 +56,57 @@ export enum TestLocation {
     SameDirectoryNested = "same directory (nested)",
     RootTestFolderFlat = "root test folder (flat)",
     RootTestFolderNested = "root test folder (nested)",
+}
+
+export enum TestingLibraryReactScreenTestFunction {
+    getByLabelText = "getByLabelText",
+    getAllByLabelText = "getAllByLabelText",
+    queryByLabelText = "queryByLabelText",
+    queryAllByLabelText = "queryAllByLabelText",
+    findByLabelText = "findByLabelText",
+    findAllByLabelText = "findAllByLabelText",
+    getByPlaceholderText = "getByPlaceholderText",
+    getAllByPlaceholderText = "getAllByPlaceholderText",
+    queryByPlaceholderText = "queryByPlaceholderText",
+    queryAllByPlaceholderText = "queryAllByPlaceholderText",
+    findByPlaceholderText = "findByPlaceholderText",
+    findAllByPlaceholderText = "findAllByPlaceholderText",
+    getByText = "getByText",
+    getAllByText = "getAllByText",
+    queryByText = "queryByText",
+    queryAllByText = "queryAllByText",
+    findByText = "findByText",
+    findAllByText = "findAllByText",
+    getByAltText = "getByAltText",
+    getAllByAltText = "getAllByAltText",
+    queryByAltText = "queryByAltText",
+    queryAllByAltText = "queryAllByAltText",
+    findByAltText = "findByAltText",
+    findAllByAltText = "findAllByAltText",
+    getByTitle = "getByTitle",
+    getAllByTitle = "getAllByTitle",
+    queryByTitle = "queryByTitle",
+    queryAllByTitle = "queryAllByTitle",
+    findByTitle = "findByTitle",
+    findAllByTitle = "findAllByTitle",
+    getByDisplayValue = "getByDisplayValue",
+    getAllByDisplayValue = "getAllByDisplayValue",
+    queryByDisplayValue = "queryByDisplayValue",
+    queryAllByDisplayValue = "queryAllByDisplayValue",
+    findByDisplayValue = "findByDisplayValue",
+    findAllByDisplayValue = "findAllByDisplayValue",
+    getByRole = "getByRole",
+    getAllByRole = "getAllByRole",
+    queryByRole = "queryByRole",
+    queryAllByRole = "queryAllByRole",
+    findByRole = "findByRole",
+    findAllByRole = "findAllByRole",
+    getByTestId = "getByTestId",
+    getAllByTestId = "getAllByTestId",
+    queryByTestId = "queryByTestId",
+    queryAllByTestId = "queryAllByTestId",
+    findByTestId = "findByTestId",
+    findAllByTestId = "findAllByTestId",
 }
 
 class SingletonConfigValue<T> {
@@ -70,3 +134,4 @@ class SingletonConfigValue<T> {
 }
 
 export const configuration = new Configuration()
+
